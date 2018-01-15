@@ -1,4 +1,11 @@
 from datetime import datetime
+from .exceptions import ExtractorException
+
+
+class AscensusExtractorException(ExtractorException):
+
+    def __init__(self, *args, **kwargs):
+        ExtractorException.__init__(self, *args, **kwargs)
 
 
 class AscensusDateExtractor(object):  # DateExtractor
@@ -16,6 +23,10 @@ class AscensusDateExtractor(object):  # DateExtractor
             # Search for the first numerical date following "period"
             start = text.find("period", start + 1)
 
+            if start < 0:
+                raise AscensusExtractorException(
+                    type(self).__name__ + ': Expected text not found')
+
             try:
                 int(text[start + 7])
                 parts = text[start + 7:].strip().split(' ')
@@ -27,6 +38,7 @@ class AscensusDateExtractor(object):  # DateExtractor
             # except NumberError:
             #     print("ValueError at index: {}".format(start))
             except ValueError:
-                print("ValueError at index: {}".format(start))
+                # print("ValueError at index: {}".format(start))
+                pass
 
         return data

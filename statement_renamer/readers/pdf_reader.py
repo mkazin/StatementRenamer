@@ -1,6 +1,7 @@
 import io
-from pdfminer import high_level
+from pdfminer import high_level, pdfdocument
 from .reader import Reader
+from .reader import ReaderException
 
 
 class PdfReader(Reader):
@@ -11,7 +12,11 @@ class PdfReader(Reader):
 
         outfp = io.StringIO()
         with open(fname, "rb") as fp:
-            high_level.extract_text_to_fp(fp, **locals())
+
+            try:
+                high_level.extract_text_to_fp(fp, **locals())
+            except pdfdocument.PDFTextExtractionNotAllowed as e:
+                raise ReaderException(e)
 
         outfp.seek(0)
         contents = outfp.read()
