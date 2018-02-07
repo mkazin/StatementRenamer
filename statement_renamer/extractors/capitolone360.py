@@ -14,7 +14,8 @@ class CapitolOne360DateExtractor(object):  # DateExtractor
     SEARCH_TEXT = "Opening Balance"
     END_TEXT = 'Closing Balance'
 
-    def match(self, text):
+    @staticmethod
+    def match(text):
         return 'My Info section.capitalone360.comInteractive' in text
 
     def extract(self, text):
@@ -31,8 +32,9 @@ class CapitolOne360DateExtractor(object):  # DateExtractor
                 raise CapitolOne360ExtractorException(
                     type(self).__name__ + ': Expected text not found')
 
+            start += len(self.__class__.SEARCH_TEXT)
+
             try:
-                start += len(self.__class__.SEARCH_TEXT)
                 int(text[start])
                 parts = text[start:].strip().split('$')
 

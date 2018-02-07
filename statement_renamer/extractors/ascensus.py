@@ -12,6 +12,10 @@ class AscensusDateExtractor(object):  # DateExtractor
 
     DATE_FORMAT = '%m/%d/%y'
 
+    @staticmethod
+    def match(text):
+        return 'Visit us at https://www.planservices.com/' in text
+
     def extract(self, text):
 
         data = {}

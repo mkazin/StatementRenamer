@@ -2,8 +2,8 @@ import os
 import sys
 import argparse
 from readers.pdf_reader import PdfReader
-from extractors.ascensus import AscensusDateExtractor
 from extractors.exceptions import ExtractorException
+from extractors.factory import ExtractorFactory
 from readers.reader_exception import ReaderException
 from formatters.date_formatter import DateFormatter
 
@@ -14,7 +14,6 @@ class Task(object):
         self.args = parser.parse_args()
         # TODO: inject these
         self.reader = PdfReader()
-        self.extractor = AscensusDateExtractor()
         self.date_formatter = DateFormatter()
 
     def execute(self):
@@ -48,7 +47,9 @@ class Task(object):
             print(contents)
             return
 
-        data = self.extractor.extract(contents)
+        extractor = ExtractorFactory.get_matching_extractor(contents)
+
+        data = extractor.extract(contents)
 
         sim_text = 'SIMULATION ' if self.args.simulate else ''
         print('{}{} : {}'.format(
