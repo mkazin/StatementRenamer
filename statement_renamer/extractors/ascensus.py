@@ -1,5 +1,5 @@
 from datetime import datetime
-from .exceptions import ExtractorException
+from .extractor import DateExtractor, ExtractorException
 
 
 class AscensusExtractorException(ExtractorException):
@@ -8,7 +8,7 @@ class AscensusExtractorException(ExtractorException):
         ExtractorException.__init__(self, *args, **kwargs)
 
 
-class AscensusDateExtractor(object):  # DateExtractor
+class AscensusDateExtractor(DateExtractor):
 
     DATE_FORMAT = '%m/%d/%y'
 

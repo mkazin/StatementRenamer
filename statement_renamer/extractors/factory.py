@@ -1,22 +1,15 @@
 
-from .ascensus import AscensusDateExtractor
-from .capitolone360 import CapitolOne360DateExtractor
-from .exceptions import ExtractorException
-from .vanguard import VanguardDateExtractor
-
-extractors = [
-    AscensusDateExtractor,
-    CapitolOne360DateExtractor,
-    VanguardDateExtractor
-]
+from .extractor import DateExtractor, ExtractorException
 
 
 class ExtractorFactory(object):
+    """ AbstractDataFactory for DateExtractors """
 
     @staticmethod
     def get_matching_extractor(text):
+        """ Return the first DateExtractor which can handle the provided text. """
 
-        for extractor in extractors:
+        for extractor in DateExtractor.__subclasses__():
             if extractor.match(text):
                 return extractor()
 

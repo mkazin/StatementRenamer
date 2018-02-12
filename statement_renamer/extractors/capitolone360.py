@@ -1,5 +1,5 @@
 from datetime import datetime
-from .exceptions import ExtractorException
+from .extractor import DateExtractor, ExtractorException
 
 
 class CapitolOne360ExtractorException(ExtractorException):
@@ -8,8 +8,9 @@ class CapitolOne360ExtractorException(ExtractorException):
         ExtractorException.__init__(self, *args, **kwargs)
 
 
-class CapitolOne360DateExtractor(object):  # DateExtractor
+class CapitolOne360DateExtractor(DateExtractor):
 
+    EXCEPTION = CapitolOne360ExtractorException
     DATE_FORMAT = '%m/%d/%Y'
     SEARCH_TEXT = "Opening Balance"
     END_TEXT = 'Closing Balance'
@@ -29,7 +30,7 @@ class CapitolOne360DateExtractor(object):  # DateExtractor
             start = text.find(self.__class__.SEARCH_TEXT, start + 1)
 
             if start < 0:
-                raise CapitolOne360ExtractorException(
+                raise self.__class__.EXCEPTION(
                     type(self).__name__ + ': Expected text not found')
 
             start += len(self.__class__.SEARCH_TEXT)
@@ -48,8 +49,7 @@ class CapitolOne360DateExtractor(object):  # DateExtractor
                 data['end_date'] = datetime.strptime(
                     parts[0], self.__class__.DATE_FORMAT)
                 break
-            # except NumberError:
-            #     print("ValueError at index: {}".format(start))
+
             except ValueError:
                 print("ValueError at index: {} - [{}]".format(start, text[start:]))
                 pass

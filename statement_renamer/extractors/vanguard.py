@@ -1,5 +1,5 @@
 from datetime import datetime
-from .exceptions import ExtractorException
+from .extractor import DateExtractor, ExtractorException
 
 
 class VanguardExtractorException(ExtractorException):
@@ -8,7 +8,7 @@ class VanguardExtractorException(ExtractorException):
         ExtractorException.__init__(self, *args, **kwargs)
 
 
-class VanguardDateExtractor(object):  # DateExtractor
+class VanguardDateExtractor(DateExtractor):
 
     EXCEPTION = VanguardExtractorException
     DATE_FORMAT = '%m/%d/%Y'
@@ -44,7 +44,6 @@ class VanguardDateExtractor(object):  # DateExtractor
 
             try:
                 start += len(clause)
-                # int(text[start])
                 parts = text[start:].strip().split('$')
 
                 return datetime.strptime(parts[0], self.__class__.DATE_FORMAT)

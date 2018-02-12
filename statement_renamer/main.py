@@ -2,7 +2,7 @@ import os
 import sys
 import argparse
 from readers.pdf_reader import PdfReader
-from extractors.exceptions import ExtractorException
+from extractors.extractor import ExtractorException
 from extractors.factory import ExtractorFactory
 from readers.reader_exception import ReaderException
 from formatters.date_formatter import DateFormatter
