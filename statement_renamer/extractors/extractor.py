@@ -12,7 +12,32 @@ class DateExtractor(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def extract(self, text):
         """ Extract data from the provided text.
+            Return class is ExtractedData, used in rename()
         """
+
+    @abc.abstractmethod
+    def rename(self, extracted_data):
+        """ Return a string with a new name for the file.
+        """
+
+
+class ExtractedData(object):
+
+    def __init__(self, start_date, end_date):
+        self.data = {}
+        self.data['start_date'] = start_date
+        self.data['end_date'] = end_date
+
+    def get_start_date(self):
+        return self.data['start_date']
+
+    def get_end_date(self):
+        return self.data['end_date']
+
+    def __repr__(self):
+        return '(ExtractedData:: {} - {})'.format(
+            self.get_start_date(),
+            self.get_end_date())
 
 
 class ExtractorException(Exception):

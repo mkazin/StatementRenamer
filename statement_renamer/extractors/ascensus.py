@@ -1,5 +1,5 @@
 from datetime import datetime
-from .extractor import DateExtractor, ExtractorException
+from .extractor import DateExtractor, ExtractedData, ExtractorException
 
 
 class AscensusExtractorException(ExtractorException):
@@ -11,6 +11,7 @@ class AscensusExtractorException(ExtractorException):
 class AscensusDateExtractor(DateExtractor):
 
     DATE_FORMAT = '%m/%d/%y'
+    FILE_FORMAT = '2015-Q{}-AcensusQuarterly.pdf'
 
     @staticmethod
     def match(text):
@@ -18,9 +19,8 @@ class AscensusDateExtractor(DateExtractor):
 
     def extract(self, text):
 
-        data = {}
-        data['start_date'] = None
-        data['end_date'] = None
+        start_date = None
+        end_date = None
 
         start = 0
         while True:
@@ -34,9 +34,9 @@ class AscensusDateExtractor(DateExtractor):
             try:
                 int(text[start + 7])
                 parts = text[start + 7:].strip().split(' ')
-                data['start_date'] = datetime.strptime(
+                start_date = datetime.strptime(
                     parts[0], AscensusDateExtractor.DATE_FORMAT)
-                data['end_date'] = datetime.strptime(
+                end_date = datetime.strptime(
                     parts[2], AscensusDateExtractor.DATE_FORMAT)
                 break
             # except NumberError:
@@ -45,4 +45,8 @@ class AscensusDateExtractor(DateExtractor):
                 # print("ValueError at index: {}".format(start))
                 pass
 
-        return data
+        return ExtractedData(start_date, end_date)
+
+    def rename(self, extracted_data):
+        return self.__class__.FILE_FORMAT.format(
+            extracted_data.get_end_date().month // 3)

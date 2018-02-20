@@ -1,5 +1,5 @@
 from datetime import datetime
-from .extractor import DateExtractor, ExtractorException
+from .extractor import DateExtractor, ExtractedData, ExtractorException
 
 
 class CapitolOne360ExtractorException(ExtractorException):
@@ -14,6 +14,7 @@ class CapitolOne360DateExtractor(DateExtractor):
     DATE_FORMAT = '%m/%d/%Y'
     SEARCH_TEXT = "Opening Balance"
     END_TEXT = 'Closing Balance'
+    FILE_FORMAT = '{:02}-{:02}-CapitalOne360.pdf'
 
     @staticmethod
     def match(text):
@@ -21,9 +22,8 @@ class CapitolOne360DateExtractor(DateExtractor):
 
     def extract(self, text):
 
-        data = {}
-        data['start_date'] = None
-        data['end_date'] = None
+        start_date = None
+        end_date = None
 
         start = 0
         while True:
@@ -39,14 +39,14 @@ class CapitolOne360DateExtractor(DateExtractor):
                 int(text[start])
                 parts = text[start:].strip().split('$')
 
-                data['start_date'] = datetime.strptime(
+                start_date = datetime.strptime(
                     parts[0], self.__class__.DATE_FORMAT)
 
                 end = text.find(self.__class__.END_TEXT)
                 end_text = text[end + len(self.__class__.END_TEXT):]
                 int(end_text[0])
                 parts = end_text.replace(' ', '').split('$')
-                data['end_date'] = datetime.strptime(
+                end_date = datetime.strptime(
                     parts[0], self.__class__.DATE_FORMAT)
                 break
 
@@ -54,4 +54,9 @@ class CapitolOne360DateExtractor(DateExtractor):
                 print("ValueError at index: {} - [{}]".format(start, text[start:]))
                 pass
 
-        return data
+        return ExtractedData(start_date, end_date)
+
+    def rename(self, extracted_data):
+        return self.__class__.FILE_FORMAT.format(
+            extracted_data.get_end_date().year,
+            extracted_data.get_end_date().month)

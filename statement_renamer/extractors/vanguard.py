@@ -1,5 +1,5 @@
 from datetime import datetime
-from .extractor import DateExtractor, ExtractorException
+from .extractor import DateExtractor, ExtractedData, ExtractorException
 
 
 class VanguardExtractorException(ExtractorException):
@@ -14,21 +14,21 @@ class VanguardDateExtractor(DateExtractor):
     DATE_FORMAT = '%m/%d/%Y'
     SEARCH_TEXT = 'Beginning balance on '
     END_TEXT = 'Ending balance on '
+    FILE_FORMAT = '{:2}-Q{} Quarterly Statement.pdf'
 
     @staticmethod
     def match(text):
-        return 'Vanguard, P.O. Box 2600Valley Forge, PA 19482-2600' in text
+        return ('Client Services: 800-662-2739' in text and
+                ('year-to-date statement' in text or
+                 'quarter-to-date statement' in text))
 
     def extract(self, text):
 
-        data = {}
-        data['start_date'] = None
-        data['end_date'] = None
-
-        data['start_date'] = self.__get_date_following__(
-            text, self.__class__.SEARCH_TEXT)
-        data['end_date'] = self.__get_date_following__(
-            text, self.__class__.END_TEXT)
+        return ExtractedData(
+            self.__get_date_following__(
+                text, self.__class__.SEARCH_TEXT),
+            self.__get_date_following__(
+                text, self.__class__.END_TEXT))
 
         return data
 
@@ -51,3 +51,8 @@ class VanguardDateExtractor(DateExtractor):
             except ValueError:
                 print("ValueError at index: {} - [{}]".format(start, text[start:]))
                 pass
+
+    def rename(self, extracted_data):
+        return self.__class__.FILE_FORMAT.format(
+            extracted_data.get_end_date().year,
+            extracted_data.get_end_date().month // 3)

@@ -1,6 +1,7 @@
 import os
 import sys
 import argparse
+from readers.md5_reader import Md5Reader
 from readers.pdf_reader import PdfReader
 from extractors.extractor import ExtractorException
 from extractors.factory import ExtractorFactory
@@ -41,6 +42,12 @@ class Task(object):
             print("Error: file or folder not found: {}".format(self.args.positional))
 
     def process_file(self, filepath):
+
+        if self.args.hash_only:
+            print('{} - {}'.format(
+                Md5Reader().parse(filepath), filepath))
+            return
+
         contents = self.reader.parse(filepath)
 
         if self.args.extract_only:
@@ -52,10 +59,11 @@ class Task(object):
         data = extractor.extract(contents)
 
         sim_text = 'SIMULATION ' if self.args.simulate else ''
-        print('{}{} : {}'.format(
-            sim_text,
-            self.date_formatter.format(data['start_date']),
-            filepath))
+
+        new_name = extractor.rename(data)
+        old_name = filepath
+
+        print('{}{} ==> {}'.format(sim_text, old_name, new_name))
 
 
 def main():
@@ -66,6 +74,11 @@ def main():
                         dest='extract_only',
                         action='store_true',
                         help=('Extract-only mode. Returns content of PDF).'),
+                        required=False)
+    parser.add_argument('-H', '--hash-only',
+                        dest='hash_only',
+                        action='store_true',
+                        help=('Hash-only mode. Returns MD5 hash of PDF).'),
                         required=False)
     parser.add_argument('-S', '--simulate',
                         dest='simulate',
