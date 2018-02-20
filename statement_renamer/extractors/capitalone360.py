@@ -2,15 +2,15 @@ from datetime import datetime
 from .extractor import DateExtractor, ExtractedData, ExtractorException
 
 
-class CapitolOne360ExtractorException(ExtractorException):
+class CapitalOne360ExtractorException(ExtractorException):
 
     def __init__(self, *args, **kwargs):
         ExtractorException.__init__(self, *args, **kwargs)
 
 
-class CapitolOne360DateExtractor(DateExtractor):
+class CapitalOne360DateExtractor(DateExtractor):
 
-    EXCEPTION = CapitolOne360ExtractorException
+    EXCEPTION = CapitalOne360ExtractorException
     DATE_FORMAT = '%m/%d/%Y'
     SEARCH_TEXT = "Opening Balance"
     END_TEXT = 'Closing Balance'

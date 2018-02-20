@@ -1,9 +1,9 @@
-from statement_renamer.extractors.capitolone360 import CapitolOne360DateExtractor
+from statement_renamer.extractors.capitalone360 import CapitalOne360DateExtractor
 from statement_renamer.extractors.factory import ExtractorFactory
 from datetime import datetime
 
 
-def test_capitolone360_date_extractor():
+def test_capitalone360_date_extractor():
     # TESTDATA_A = '''Customer Number XXXXXXX555 Your Savings Summary as of 02/29/2016      Account TypeNicknameAccount NumberAccount BalanceJoint Name360 CheckingElectric Checking5551212$1,234,567.89'''
     TESTDATA = (
         'Your 360 Savings Activity Account: DJT ' +
@@ -16,7 +16,7 @@ def test_capitolone360_date_extractor():
         'Closing Balance02 / 29 / 2016$220, 013, 213.32'
         'See below for important information.')
 
-    extractor = CapitolOne360DateExtractor()
+    extractor = CapitalOne360DateExtractor()
     data = extractor.extract(TESTDATA)
     new_name = extractor.rename(data)
 
@@ -40,4 +40,4 @@ def test_factory():
 
     extractor = ExtractorFactory.get_matching_extractor(TESTDATA)
 
-    assert type(extractor) is CapitolOne360DateExtractor
+    assert type(extractor) is CapitalOne360DateExtractor

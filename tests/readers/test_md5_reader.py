@@ -1,7 +1,7 @@
 from statement_renamer.readers.md5_reader import Md5Reader
 
 
-def test_pdf_reader():
+def test_md5_reader():
     TEST_FILE = 'tests/readers/made-with-cc-p4.pdf'
 
     reader = Md5Reader()
