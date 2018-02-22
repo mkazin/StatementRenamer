@@ -1,12 +1,55 @@
+import argparse
+import enum
 import os
 import sys
-import argparse
+from tqdm import tqdm
 from readers.md5_reader import Md5Reader
 from readers.pdf_reader import PdfReader
 from extractors.extractor import ExtractorException
 from extractors.factory import ExtractorFactory
 from readers.reader_exception import ReaderException
 from formatters.date_formatter import DateFormatter
+
+
+@enum.unique
+class ActionType(enum.Enum):
+    delete = 3
+    ignore = 2
+    rename = 1
+
+
+class Action(object):
+
+    def __init__(self, action_type, source, target=None, reason=None):
+        """ Do not use. Call a create_XYZ_action() builder instead.
+        """
+        self.action_type = action_type
+        self.source = source
+        self.target = target
+        self.reason = reason
+
+    def __repr__(self):
+        response = '{} {}'.format(
+            self.action_type.name.capitalize(),
+            os.path.basename(self.source))
+        if self.action_type == ActionType.rename:
+            response += ' to {}'.format(
+                os.path.basename(self.target))
+        if self.reason:
+            response += ' ({})'.format(self.reason)
+        return response
+
+    @staticmethod
+    def create_delete_action(filepath, reason=None):
+        return Action(ActionType.delete, filepath, reason=reason)
+
+    @staticmethod
+    def create_rename_action(source_filepath, target_filepath):
+        return Action(ActionType.rename, source_filepath, target_filepath)
+
+    @staticmethod
+    def create_ignore_action(filepath, reason):
+        return Action(ActionType.ignore, filepath, target=None, reason=reason)
 
 
 class Task(object):
@@ -17,37 +60,77 @@ class Task(object):
         self.reader = PdfReader()
         self.date_formatter = DateFormatter()
 
+        self.actions = []
+        self.hashes = []
+        self.action_totals = {}
+
     def execute(self):
         if os.path.isfile(self.args.positional):
-            self.process_file(self.args.positional)
+            self.determine_action_for_file(self.args.positional)
 
         elif os.path.isdir(self.args.positional):
-            for dir_name, subdir_list, file_list in os.walk(self.args.positional):
 
-                for curr_file in file_list:
+            # Map to track number of actions performed per action type
+            for action_type in ActionType:
+                self.action_totals[action_type.name] = 0
 
-                    curr_path = (dir_name + '/' + curr_file).replace('//', '/')
+            dir_name = self.args.positional
+            for curr_file in tqdm(walkdir(self.args.positional),
+                                  disable=self.args.quiet or self.args.verbose,
+                                  desc='Processing Files', unit=' files'):
+                dir_name = os.path.dirname(curr_file)
+                curr_path = curr_file  # (dir_name + '/' + curr_file).replace('//', '/')
 
-                    try:
-                        self.process_file(curr_path)
-                    except ReaderException as e:
-                        print('Failed to read {} : {}'.format(
-                            curr_path, str(e)))
-                        continue
-                    except ExtractorException as e:
-                        print('Failed to extract {} : {}'.format(
-                            curr_path, str(e)))
-                        continue
+                try:
+                    self.determine_action_for_file(curr_path)
+                except ReaderException as e:
+                    # print('Failed to read {} : {}'.format(
+                    #     curr_path, str(e)))
+                    self.actions.append(Action.create_ignore_action(
+                        curr_path, reason='Failed to read file {}'.format(curr_path)))
+                    self.action_totals[ActionType.ignore.name] += 1
+
+                    continue
+                except ExtractorException as e:
+                    # print('Failed to extract {} : {}'.format(
+                    #     curr_path, str(e)))
+                    self.actions.append(Action.create_ignore_action(
+                        curr_path, reason='Failed to extract text from PDF'))
+                    self.action_totals[ActionType.ignore.name] += 1
+                    continue
         else:
             print("Error: file or folder not found: {}".format(self.args.positional))
 
-    def process_file(self, filepath):
+        if self.args.verbose:
+            for action in self.actions:
+                self.act_on_file(action)
 
+        if not self.args.quiet:
+            print('Summary: ' + ', '.join(
+                ['{}: {}'.format(key.capitalize(), self.action_totals[key])
+                 for key in self.action_totals.keys()]))
+
+    def determine_action_for_file(self, filepath):
+        """ Determine the action required on the specified file:
+            - Checks for a duplicate using MD5 hash
+            - Extracts text from the document
+            - Extracts meaningful data from the document
+            - Constructs the necessary Action to take on the file and appends
+              it to the actions list
+        """
+
+        # TODO: perform this every time? Or only when we find a duplicate target filename?
+        hash = Md5Reader().parse(filepath)
         if self.args.hash_only:
-            print('{} - {}'.format(
-                Md5Reader().parse(filepath), filepath))
+            print('{} - {}'.format(hash, filepath))
             return
 
+        if hash in self.hashes:
+            self.actions.append(Action.create_ignore_action(
+                filepath, reason='Duplicate hash: {}'.format(hash)))
+            return
+
+            # TODO: can PdfReader accept/process the same streamed data as Md5Reader?
         contents = self.reader.parse(filepath)
 
         if self.args.extract_only:
@@ -57,13 +140,38 @@ class Task(object):
         extractor = ExtractorFactory.get_matching_extractor(contents)
 
         data = extractor.extract(contents)
-
-        sim_text = 'SIMULATION ' if self.args.simulate else ''
+        data.set_source(filepath)
+        data.set_hash(hash)
 
         new_name = extractor.rename(data)
-        old_name = filepath
+        old_name = filepath.split('/')[-1]
+        new_path = filepath[0:filepath.rfind('/') + 1] + new_name
 
-        print('{}{} ==> {}'.format(sim_text, old_name, new_name))
+        self.hashes.append(hash)
+
+        if old_name == new_name:
+            action = Action.create_ignore_action(
+                filepath, reason='Already named correctly')
+        else:
+            action = Action.create_rename_action(filepath, new_path)
+
+        self.actions.append(action)
+
+        if self.args.verbose:
+            print('Adding action: {}'.format(action))
+
+    def act_on_file(self, action):
+        if self.args.simulate:
+            if not self.args.quiet:
+                print('SIMULATION ' + str(action))
+            return
+        # print(action)
+
+        if action.action_type is ActionType.rename:
+            os.rename(action.source, action.target)
+        elif action.action_type is ActionType.delete:
+            os.delete(action.source)
+        self.action_totals[action.action_type.name] += 1
 
 
 def main():
@@ -73,17 +181,27 @@ def main():
     parser.add_argument('-E', '--extract-only',
                         dest='extract_only',
                         action='store_true',
-                        help=('Extract-only mode. Returns content of PDF).'),
+                        help=('Extract-only mode. Returns content of PDF'),
                         required=False)
     parser.add_argument('-H', '--hash-only',
                         dest='hash_only',
                         action='store_true',
-                        help=('Hash-only mode. Returns MD5 hash of PDF).'),
+                        help=('Hash-only mode. Returns MD5 hash of input files'),
                         required=False)
     parser.add_argument('-S', '--simulate',
                         dest='simulate',
                         action='store_true',
-                        help=('Simulation mode. Outputs actions that would be taken).'),
+                        help=('Simulation mode. Outputs actions that would be taken'),
+                        required=False)
+    parser.add_argument('-v', '--verbose',
+                        dest='verbose',
+                        action='store_true',
+                        help=('Verbose mode. Outputs detailed information'),
+                        required=False)
+    parser.add_argument('-q', '--quiet',
+                        dest='quiet',
+                        action='store_true',
+                        help=('Quiet mode. Produces no console output'),
                         required=False)
 
     parser.add_argument('positional',
@@ -95,3 +213,13 @@ def main():
 
     task = Task(parser)
     task.execute()
+
+
+def walkdir(folder):
+    """Walk through each files in a directory"""
+    results = []
+    for dirpath, dirs, files in os.walk(folder):
+        for filename in files:
+            # yield os.path.abspath(os.path.join(dirpath, filename))
+            results.append(os.path.abspath(os.path.join(dirpath, filename)))
+    return results

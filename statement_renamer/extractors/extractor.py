@@ -34,6 +34,12 @@ class ExtractedData(object):
     def get_end_date(self):
         return self.data['end_date']
 
+    def set_hash(self, hash):
+        self.data['hash'] = hash
+
+    def set_source(self, source_path):
+        self.data['source_path'] = source_path
+
     def __repr__(self):
         return '(ExtractedData:: {} - {})'.format(
             self.get_start_date(),
