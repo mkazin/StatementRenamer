@@ -1,5 +1,6 @@
 import argparse
 import enum
+import logging
 import os
 import sys
 from tqdm import tqdm
@@ -54,25 +55,26 @@ class Action(object):
 
 class Task(object):
 
-    def __init__(self, parser):
+    def __init__(self, parser, logger=None):
         self.args = parser.parse_args()
         # TODO: inject these
         self.reader = PdfReader()
         self.date_formatter = DateFormatter()
+        self.logger = logger
 
         self.actions = []
         self.hashes = []
         self.action_totals = {}
 
     def execute(self):
+        # Map to track number of actions performed per action type
+        for action_type in ActionType:
+            self.action_totals[action_type.name] = 0
+
         if os.path.isfile(self.args.positional):
             self.determine_action_for_file(self.args.positional)
 
         elif os.path.isdir(self.args.positional):
-
-            # Map to track number of actions performed per action type
-            for action_type in ActionType:
-                self.action_totals[action_type.name] = 0
 
             dir_name = self.args.positional
             for curr_file in tqdm(walkdir(self.args.positional),
@@ -80,6 +82,9 @@ class Task(object):
                                   desc='Processing Files', unit=' files'):
                 dir_name = os.path.dirname(curr_file)
                 curr_path = curr_file  # (dir_name + '/' + curr_file).replace('//', '/')
+                self.logger.info('Processing: {}'.format(curr_path))
+                if self.args.verbose:
+                    print('Processing: {}'.format(curr_path))
 
                 try:
                     self.determine_action_for_file(curr_path)
@@ -88,27 +93,33 @@ class Task(object):
                     #     curr_path, str(e)))
                     self.actions.append(Action.create_ignore_action(
                         curr_path, reason='Failed to read file {}'.format(curr_path)))
+                    self.logger.exception(e)
                     self.action_totals[ActionType.ignore.name] += 1
-
                     continue
                 except ExtractorException as e:
                     # print('Failed to extract {} : {}'.format(
                     #     curr_path, str(e)))
                     self.actions.append(Action.create_ignore_action(
-                        curr_path, reason='Failed to extract text from PDF'))
+                        curr_path, reason=str(e)))  # 'Failed to extract text from PDF'
+                    self.logger.exception(e)
                     self.action_totals[ActionType.ignore.name] += 1
                     continue
         else:
             print("Error: file or folder not found: {}".format(self.args.positional))
 
-        if self.args.verbose:
-            for action in self.actions:
-                self.act_on_file(action)
+        print('Done processing files')
+        for action in self.actions:
+            self.logger.debug(action)
+            self.act_on_file(action)
 
+        summary = 'Summary: ' + ', '.join(
+            ['{}: {}'.format(key.capitalize(), self.action_totals[key])
+             for key in self.action_totals.keys()])
+        self.logger.debug(summary)
         if not self.args.quiet:
-            print('Summary: ' + ', '.join(
-                ['{}: {}'.format(key.capitalize(), self.action_totals[key])
-                 for key in self.action_totals.keys()]))
+            if self.args.simulate:
+                summary = 'SIMULATED ' + summary
+            print(summary)
 
     def determine_action_for_file(self, filepath):
         """ Determine the action required on the specified file:
@@ -140,6 +151,7 @@ class Task(object):
         extractor = ExtractorFactory.get_matching_extractor(contents)
 
         data = extractor.extract(contents)
+
         data.set_source(filepath)
         data.set_hash(hash)
 
@@ -152,6 +164,11 @@ class Task(object):
         if old_name == new_name:
             action = Action.create_ignore_action(
                 filepath, reason='Already named correctly')
+        elif os.path.isfile(new_path):
+            # TODO: this isn't good enough to avoid an overwrite, as there is no
+            #       coordination between files.
+            action = Action.create_ignore_action(
+                filepath, reason='File already exists. Ignoring to avoid an overwrite.')
         else:
             action = Action.create_rename_action(filepath, new_path)
 
@@ -161,6 +178,8 @@ class Task(object):
             print('Adding action: {}'.format(action))
 
     def act_on_file(self, action):
+        self.action_totals[action.action_type.name] += 1
+
         if self.args.simulate:
             if not self.args.quiet:
                 print('SIMULATION ' + str(action))
@@ -168,13 +187,28 @@ class Task(object):
         # print(action)
 
         if action.action_type is ActionType.rename:
+            if os.path.isfile(action.target):
+                error_text = (
+                    'Aborting action {} to avoid overwrite of target'.format(action))
+                if not self.args.quiet:
+                    print(error_text)
+                self.logger.error(error_text)
+                return
             os.rename(action.source, action.target)
         elif action.action_type is ActionType.delete:
             os.delete(action.source)
-        self.action_totals[action.action_type.name] += 1
+
+
+LOG_FILE_NAME = 'Logs/output.log'
+logger = logging.getLogger('StatementRenamer')
 
 
 def main():
+
+    handler = logging.FileHandler(LOG_FILE_NAME)
+    logger.addHandler(handler)
+    logger.setLevel("DEBUG")  # WARNING")
+    logger.warning('Starting rename with params: [{}]'.format(' '.join(sys.argv[1:])))
 
     parser = argparse.ArgumentParser()
 
@@ -211,8 +245,12 @@ def main():
                         # required=True,
                         type=str)
 
-    task = Task(parser)
-    task.execute()
+    try:
+        task = Task(parser, logger)
+        task.execute()
+    except Exception as e:
+        logger.exception(e)
+        raise e
 
 
 def walkdir(folder):
