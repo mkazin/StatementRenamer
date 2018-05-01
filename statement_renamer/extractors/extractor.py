@@ -37,8 +37,14 @@ class ExtractedData(object):
     def set_hash(self, hash):
         self.data['hash'] = hash
 
+    def get_hash(self):
+        return self.data['hash']
+
     def set_source(self, source_path):
         self.data['source_path'] = source_path
+
+    def get_source(self):
+        return self.data['source_path']
 
     def __repr__(self):
         return '(ExtractedData:: {} - {})'.format(

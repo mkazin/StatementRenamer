@@ -6,6 +6,7 @@ import sys
 from tqdm import tqdm
 from readers.md5_reader import Md5Reader
 from readers.pdf_reader import PdfReader
+import extractors
 from extractors.extractor import ExtractorException
 from extractors.factory import ExtractorFactory
 from readers.reader_exception import ReaderException
@@ -137,7 +138,7 @@ class Task(object):
             return
 
         if hash in self.hashes:
-            self.actions.append(Action.create_ignore_action(
+            self.actions.append(Action.create_delete_action(
                 filepath, reason='Duplicate hash: {}'.format(hash)))
             return
 
@@ -165,10 +166,24 @@ class Task(object):
             action = Action.create_ignore_action(
                 filepath, reason='Already named correctly')
         elif os.path.isfile(new_path):
+
             # TODO: this isn't good enough to avoid an overwrite, as there is no
             #       coordination between files.
-            action = Action.create_ignore_action(
-                filepath, reason='File already exists. Ignoring to avoid an overwrite.')
+            #       How about storing the data objects in a hash of target paths?
+            #       Or, key's c
+
+            existing_hash = Md5Reader().parse(new_path)
+            if existing_hash == data.get_hash():
+                reason = ('Found duplicate hash ({}) shared by [{}] and [{}].'.
+                          format(existing_hash, new_path, data.get_source()))
+                action = Action.create_delete_action(data.get_source(), reason=reason)
+
+            else:
+                action = Action.create_ignore_action(
+                    filepath,
+                    reason=(
+                        'Target File [{}] already exists. Ignoring to avoid an overwrite.'
+                        .format(new_name)))
         else:
             action = Action.create_rename_action(filepath, new_path)
 
@@ -196,7 +211,7 @@ class Task(object):
                 return
             os.rename(action.source, action.target)
         elif action.action_type is ActionType.delete:
-            os.delete(action.source)
+            os.remove(action.source)
 
 
 LOG_FILE_NAME = 'Logs/output.log'
