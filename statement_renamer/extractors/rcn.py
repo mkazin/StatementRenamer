@@ -27,7 +27,9 @@ class RcnDateExtractor(DateExtractor):
 
     @staticmethod
     def match(text):
-        return '1-800-RING-RCN' in text.replace('.', '-')
+        # TODO: re-enable when addressing implementation issues in extract()
+        # return '1-800-RING-RCN' in text.replace('.', '-')
+        return False
 
     def extract(self, text):
 
