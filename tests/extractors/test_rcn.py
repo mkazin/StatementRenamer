@@ -3,7 +3,7 @@ from statement_renamer.extractors.factory import ExtractorFactory
 from datetime import datetime
 
 
-def disabled_test_rcn_statement():
+def test_rcn_statement():
     TESTDATA = (
         '1-800-RING-RCN (1-800-746-4726)Website:'
         'Statement Date:Account Number:Payment Due Date:11'
@@ -19,7 +19,7 @@ def disabled_test_rcn_statement():
     assert new_name == '2017-01-RCN.pdf'
 
 
-def disabled_test_start_of_month_statement():
+def test_start_of_month_statement():
     TESTDATA = (
         '1-800-RING-RCN (1-800-746-4726)Website:'
         'Bill Date04/01/2016Due Date'
@@ -42,7 +42,7 @@ def disabled_test_start_of_month_statement():
     assert new_name == '2016-04-RCN.pdf'
 
 
-def disabled_test_start_of_year_statement():
+def test_start_of_year_statement():
     TESTDATA = (
         '1-800-RING-RCN (1-800-746-4726)Website:'
         'Bill Date12/29/2016Due Date'
@@ -65,7 +65,7 @@ def disabled_test_start_of_year_statement():
     assert new_name == '2017-01-RCN.pdf'
 
 
-def disabled_test_old_rcn_statement():
+def test_old_rcn_statement():
     TESTDATA = (
         '1-800-RING-RCN (1-800-746-4726)Website:'
         'Bill Date04/29/2016Due Date'
@@ -80,7 +80,7 @@ def disabled_test_old_rcn_statement():
     assert new_name == '2016-04-RCN.pdf'
 
 
-def disabled_test_factory():
+def test_factory():
     TESTDATA = (
         '1-800-RING-RCN (1-800-746-4726)Website:'
         'Statement Date:Account Number:Payment Due Date:1'

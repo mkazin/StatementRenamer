@@ -27,11 +27,15 @@ class RcnDateExtractor(DateExtractor):
 
     @staticmethod
     def match(text):
-        # TODO: re-enable when addressing implementation issues in extract()
-        # return '1-800-RING-RCN' in text.replace('.', '-')
-        return False
+        return '1-800-RING-RCN' in text.replace('.', '-')
+
 
     def extract(self, text):
+        start_date = None
+        end_date = None
+
+        
+    def __old_extract__(self, text):
 
         start_date = None
         end_date = None
