@@ -8,3 +8,4 @@ script:
         - "pytest --cov=statement_renamer tests"
 after_script:
         - codeclimate-test-reporter --token $CODECLIMATE_REPO_TOKEN
+        - codecov --token $CODECLIMATE_REPO_TOKEN

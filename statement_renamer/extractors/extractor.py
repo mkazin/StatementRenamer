@@ -20,6 +20,10 @@ class DateExtractor(metaclass=abc.ABCMeta):
         """ Return a string with a new name for the file.
         """
 
+    def __handle_search_failure__(self, condition):
+        if condition:
+            raise self.__class__.EXCEPTION(
+                type(self).__name__ + ': Expected text not found')
 
 class ExtractedData(object):
 
