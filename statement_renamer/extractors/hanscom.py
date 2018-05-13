@@ -30,9 +30,7 @@ class HanscomDateExtractor(DateExtractor):
         while True:
             start = text.find(self.__class__.SEARCH_TEXT, start + 1)
 
-            if start < 0:
-                raise self.__class__.EXCEPTION(
-                    type(self).__name__ + ': Expected text not found')
+            self.__handle_search_failure__(start < 0)
 
             start += len(self.__class__.SEARCH_TEXT)
             end = text.find(self.__class__.END_TEXT, start + 1)

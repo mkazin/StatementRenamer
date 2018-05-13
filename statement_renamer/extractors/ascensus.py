@@ -27,9 +27,7 @@ class AscensusDateExtractor(DateExtractor):
             # Search for the first numerical date following "period"
             start = text.find("period", start + 1)
 
-            if start < 0:
-                raise AscensusExtractorException(
-                    type(self).__name__ + ': Expected text not found')
+            self.__handle_search_failure__(start < 0)
 
             try:
                 int(text[start + 7])

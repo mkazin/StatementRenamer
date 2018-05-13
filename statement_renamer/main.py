@@ -72,13 +72,13 @@ class Task(object):
         for action_type in ActionType:
             self.action_totals[action_type.name] = 0
 
-        if os.path.isfile(self.args.positional):
-            self.determine_action_for_file(self.args.positional)
+        if os.path.isfile(self.args.location):
+            self.determine_action_for_file(self.args.location)
 
-        elif os.path.isdir(self.args.positional):
+        elif os.path.isdir(self.args.location):
 
-            dir_name = self.args.positional
-            for curr_file in tqdm(walkdir(self.args.positional),
+            dir_name = self.args.location
+            for curr_file in tqdm(walkdir(self.args.location),
                                   disable=self.args.quiet or self.args.verbose,
                                   desc='Processing Files', unit=' files'):
                 dir_name = os.path.dirname(curr_file)
@@ -106,7 +106,7 @@ class Task(object):
                     self.action_totals[ActionType.ignore.name] += 1
                     continue
         else:
-            print("Error: file or folder not found: {}".format(self.args.positional))
+            print("Error: file or folder not found: {}".format(self.args.location))
 
         print('Done processing files')
         for action in self.actions:
@@ -193,13 +193,11 @@ class Task(object):
             print('Adding action: {}'.format(action))
 
     def act_on_file(self, action):
-        self.action_totals[action.action_type.name] += 1
 
         if self.args.simulate:
             if not self.args.quiet:
                 print('SIMULATION ' + str(action))
             return
-        # print(action)
 
         if action.action_type is ActionType.rename:
             if os.path.isfile(action.target):
@@ -253,7 +251,7 @@ def main():
                         help=('Quiet mode. Produces no console output'),
                         required=False)
 
-    parser.add_argument('positional',
+    parser.add_argument('location',
                         # dest='target',
                         action='store',
                         help='File or folder to process',
