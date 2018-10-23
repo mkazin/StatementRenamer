@@ -20,26 +20,22 @@ class Task(object):
 
     class Config(object):
 
-        def __get_val_or__(val, default):
-            if val:
-                return val
+        @staticmethod
+        def __get_val_or__(obj, field, default):
+            if obj:
+                return obj.get(field)
             return default
 
         @staticmethod
         def from_parser(parser):
             args = parser.parse_args()
-            quiet = __get_val__or(parser.quiet, False)
-            verbose = __get_val__or(parser.verbose, False)
-            simulate = __get_val__or(parser.simulate, False)
-            hash_only = __get_val__or(parser.hash_only, False)
-            extract_only = __get_val__or(parser.extract_only, False)
             return Task.Config(
-                location=args.location, quiet=quiet, verbose=verbose,
-                simulate=simulate, hash_only=hash_only, extract_only=extract_only)
+                location=args.location, quiet=args.quiet, verbose=args.verbose,
+                simulate=args.simulate, hash_only=args.hash_only, extract_only=args.extract_only)
 
         def __init__(self, location,
                      quiet=False, verbose=False, simulate=False,
-                     hash_only=hash_only, extract_only=False):
+                     hash_only=False, extract_only=False):
             self.location = location
             self.quiet = quiet
             self.verbose = verbose
@@ -48,7 +44,7 @@ class Task(object):
             self.extract_only = extract_only
 
     def __init__(self, parser, logger=None):
-        self.config = Config.from_parser(parser)
+        self.config = Task.Config.from_parser(parser)
         # TODO: inject these
         self.reader = PdfReader()
         self.date_formatter = DateFormatter()
@@ -186,7 +182,7 @@ class Task(object):
 
         self.actions.append(action)
 
-        if self.args.verbose:
+        if self.config.verbose:
             print('Adding action: {}'.format(action))
 
     def _perform_rename_(self, action):
@@ -194,7 +190,7 @@ class Task(object):
         if os.path.isfile(action.target):
             error_text = (
                 'Aborting action {} to avoid overwrite of target'.format(action))
-            if not self.args.quiet:
+            if not self.config.quiet:
                 print(error_text)
             self.logger.error(error_text)
             return
@@ -205,8 +201,8 @@ class Task(object):
         # Increment action total
         self.action_totals[action.action_type.name] += 1
 
-        if self.args.simulate:
-            if not self.args.quiet:
+        if self.config.simulate:
+            if not self.config.quiet:
                 print('SIMULATION ' + str(action))
             return
 
@@ -215,4 +211,3 @@ class Task(object):
 
         elif action.action_type is ActionType.delete:
             os.remove(action.source)
-            
