@@ -29,10 +29,19 @@ class Task(object):
         self.hashes = []
         self.action_totals = {}
 
-    def execute(self):
-        # Map to track number of actions performed per action type
+
+    def __reset_action_totals__(self):
+        """ Sets up a map to track number of actions performed per action type """
         for action_type in ActionType:
             self.action_totals[action_type.name] = 0
+
+    def __perform_actions__(self):
+        for action in self.actions:
+            self.logger.debug(action)
+            self.act_on_file(action)
+
+    def execute(self):
+        self.__reset_action_totals__()
 
         if os.path.isfile(self.args.location):
             self.determine_action_for_file(self.args.location)
@@ -71,9 +80,8 @@ class Task(object):
             print("Error: file or folder not found: {}".format(self.args.location))
 
         print('Done processing files')
-        for action in self.actions:
-            self.logger.debug(action)
-            self.act_on_file(action)
+
+        self.__perform_actions__()
 
         summary = 'Summary: ' + ', '.join(
             ['{}: {}'.format(key.capitalize(), self.action_totals[key])
@@ -154,6 +162,17 @@ class Task(object):
         if self.args.verbose:
             print('Adding action: {}'.format(action))
 
+    def _perform_rename_(self, action):
+        """ Perform the rename operation in the provided Action """
+        if os.path.isfile(action.target):
+            error_text = (
+                'Aborting action {} to avoid overwrite of target'.format(action))
+            if not self.args.quiet:
+                print(error_text)
+            self.logger.error(error_text)
+            return
+        os.rename(action.source, action.target)
+
     def act_on_file(self, action):
 
         # Increment action total
@@ -165,13 +184,7 @@ class Task(object):
             return
 
         if action.action_type is ActionType.rename:
-            if os.path.isfile(action.target):
-                error_text = (
-                    'Aborting action {} to avoid overwrite of target'.format(action))
-                if not self.args.quiet:
-                    print(error_text)
-                self.logger.error(error_text)
-                return
-            os.rename(action.source, action.target)
+            self._perform_rename_(action)
+
         elif action.action_type is ActionType.delete:
             os.remove(action.source)
