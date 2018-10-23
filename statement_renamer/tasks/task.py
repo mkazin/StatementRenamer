@@ -18,8 +18,37 @@ def walkdir(folder):
 
 class Task(object):
 
+    class Config(object):
+
+        def __get_val_or__(val, default):
+            if val:
+                return val
+            return default
+
+        @staticmethod
+        def from_parser(parser):
+            args = parser.parse_args()
+            quiet = __get_val__or(parser.quiet, False)
+            verbose = __get_val__or(parser.verbose, False)
+            simulate = __get_val__or(parser.simulate, False)
+            hash_only = __get_val__or(parser.hash_only, False)
+            extract_only = __get_val__or(parser.extract_only, False)
+            return Task.Config(
+                location=args.location, quiet=quiet, verbose=verbose,
+                simulate=simulate, hash_only=hash_only, extract_only=extract_only)
+
+        def __init__(self, location,
+                     quiet=False, verbose=False, simulate=False,
+                     hash_only=hash_only, extract_only=False):
+            self.location = location
+            self.quiet = quiet
+            self.verbose = verbose
+            self.simulate = simulate
+            self.hash_only = hash_only
+            self.extract_only = extract_only
+
     def __init__(self, parser, logger=None):
-        self.args = parser.parse_args()
+        self.config = Config.from_parser(parser)
         # TODO: inject these
         self.reader = PdfReader()
         self.date_formatter = DateFormatter()
@@ -43,19 +72,19 @@ class Task(object):
     def execute(self):
         self.__reset_action_totals__()
 
-        if os.path.isfile(self.args.location):
-            self.determine_action_for_file(self.args.location)
+        if os.path.isfile(self.config.location):
+            self.determine_action_for_file(self.config.location)
 
-        elif os.path.isdir(self.args.location):
+        elif os.path.isdir(self.config.location):
 
-            dir_name = self.args.location
-            for curr_file in tqdm(walkdir(self.args.location),
-                                  disable=self.args.quiet or self.args.verbose,
+            dir_name = self.config.location
+            for curr_file in tqdm(walkdir(self.config.location),
+                                  disable=self.config.quiet or self.config.verbose,
                                   desc='Processing Files', unit=' files'):
                 dir_name = os.path.dirname(curr_file)
                 curr_path = curr_file  # (dir_name + '/' + curr_file).replace('//', '/')
                 self.logger.info('Processing: {}'.format(curr_path))
-                if self.args.verbose:
+                if self.config.verbose:
                     print('Processing: {}'.format(curr_path))
 
                 try:
@@ -75,7 +104,7 @@ class Task(object):
                     self.logger.exception(e)
                     continue
         else:
-            print("Error: file or folder not found: {}".format(self.args.location))
+            print("Error: file or folder not found: {}".format(self.config.location))
 
         print('Done processing files')
 
@@ -85,8 +114,8 @@ class Task(object):
             ['{}: {}'.format(key.capitalize(), self.action_totals[key])
              for key in self.action_totals.keys()])
         self.logger.debug(summary)
-        if not self.args.quiet:
-            if self.args.simulate:
+        if not self.config.quiet:
+            if self.config.simulate:
                 summary = 'SIMULATED ' + summary
             print(summary)
 
@@ -101,7 +130,7 @@ class Task(object):
 
         # TODO: perform this every time? Or only when we find a duplicate target filename?
         hash = Md5Reader().parse(filepath)
-        if self.args.hash_only:
+        if self.config.hash_only:
             print('{} - {}'.format(hash, filepath))
             return
 
@@ -113,7 +142,7 @@ class Task(object):
             # TODO: can PdfReader accept/process the same streamed data as Md5Reader?
         contents = self.reader.parse(filepath)
 
-        if self.args.extract_only:
+        if self.config.extract_only:
             print(contents)
             return
 
@@ -186,3 +215,4 @@ class Task(object):
 
         elif action.action_type is ActionType.delete:
             os.remove(action.source)
+            
