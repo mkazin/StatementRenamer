@@ -3,12 +3,18 @@ import os
 from extractors.extractor import ExtractorException
 from extractors.factory import ExtractorFactory
 from formatters.date_formatter import DateFormatter
-from main import walkdir
 from readers.md5_reader import Md5Reader
 from readers.pdf_reader import PdfReader
 from readers.reader_exception import ReaderException
 from tasks.action import ActionType, Action
+from tqdm import tqdm
 
+
+def walkdir(folder):
+    """Walk through each files in a directory"""
+    for dirpath, dirs, files in os.walk(folder):
+        for filename in files:
+            yield os.path.abspath(os.path.join(dirpath, filename))
 
 class Task(object):
 
@@ -149,6 +155,9 @@ class Task(object):
             print('Adding action: {}'.format(action))
 
     def act_on_file(self, action):
+
+        # Increment action total
+        self.action_totals[action.action_type.name] += 1
 
         if self.args.simulate:
             if not self.args.quiet:
