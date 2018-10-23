@@ -66,7 +66,6 @@ class Task(object):
                     self.actions.append(Action.create_ignore_action(
                         curr_path, reason='Failed to read file {}'.format(curr_path)))
                     self.logger.exception(e)
-                    self.action_totals[ActionType.ignore.name] += 1
                     continue
                 except ExtractorException as e:
                     # print('Failed to extract {} : {}'.format(
@@ -74,7 +73,6 @@ class Task(object):
                     self.actions.append(Action.create_ignore_action(
                         curr_path, reason=str(e)))  # 'Failed to extract text from PDF'
                     self.logger.exception(e)
-                    self.action_totals[ActionType.ignore.name] += 1
                     continue
         else:
             print("Error: file or folder not found: {}".format(self.args.location))
@@ -144,7 +142,7 @@ class Task(object):
 
             existing_hash = Md5Reader().parse(new_path)
             if existing_hash == data.get_hash():
-                reason = ('Found duplicate hash ({}) shared by [{}] and [{}].'.
+                reason = ('Found duplicate hash ({}) shared by [{}].'.
                           format(existing_hash, new_path, data.get_source()))
                 action = Action.create_delete_action(data.get_source(), reason=reason)
 
