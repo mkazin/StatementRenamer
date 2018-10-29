@@ -1,5 +1,5 @@
 import io
-from pdfminer import high_level, pdfdocument
+from pdfminer import high_level, pdfdocument, pdfparser
 from .reader import Reader
 from .reader import ReaderException
 
@@ -16,6 +16,8 @@ class PdfReader(Reader):
             try:
                 high_level.extract_text_to_fp(fp, **locals())
             except pdfdocument.PDFTextExtractionNotAllowed as e:
+                raise ReaderException(e)
+            except pdfparser.PDFSyntaxError as e:
                 raise ReaderException(e)
 
         outfp.seek(0)
