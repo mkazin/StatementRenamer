@@ -1,12 +1,12 @@
 import os
 
-from extractors.extractor import ExtractorException
-from extractors.factory import ExtractorFactory
-from formatters.date_formatter import DateFormatter
-from readers.md5_reader import Md5Reader
-from readers.pdf_reader import PdfReader
-from readers.reader_exception import ReaderException
-from tasks.action import ActionType, Action
+from ..extractors.extractor import ExtractorException
+from ..extractors.factory import ExtractorFactory
+from ..formatters.date_formatter import DateFormatter
+from ..readers.md5_reader import Md5Reader
+from ..readers.pdf_reader import PdfReader
+from ..readers.reader_exception import ReaderException
+from ..tasks.action import ActionType, Action
 from tqdm import tqdm
 
 
