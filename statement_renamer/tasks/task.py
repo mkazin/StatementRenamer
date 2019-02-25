@@ -7,6 +7,7 @@ from ..readers.md5_reader import Md5Reader
 from ..readers.pdf_reader import PdfReader
 from ..readers.reader_exception import ReaderException
 from ..tasks.action import ActionType, Action
+# from ..tasks.deduplicator import Deduplicator
 from tqdm import tqdm
 
 
@@ -15,6 +16,7 @@ def walkdir(folder):
     for dirpath, dirs, files in os.walk(folder):
         for filename in files:
             yield os.path.abspath(os.path.join(dirpath, filename))
+
 
 class Task(object):
 
@@ -31,7 +33,8 @@ class Task(object):
             args = parser.parse_args()
             return Task.Config(
                 location=args.location, quiet=args.quiet, verbose=args.verbose,
-                simulate=args.simulate, hash_only=args.hash_only, extract_only=args.extract_only)
+                simulate=args.simulate, hash_only=args.hash_only,
+                extract_only=args.extract_only)
 
         def __init__(self, location,
                      quiet=False, verbose=False, simulate=False,
@@ -54,7 +57,6 @@ class Task(object):
         self.hashes = []
         self.action_totals = {}
 
-
     def __reset_action_totals__(self):
         """ Sets up a map to track number of actions performed per action type """
         for action_type in ActionType:
@@ -64,6 +66,10 @@ class Task(object):
         for action in self.actions:
             self.logger.debug(action)
             self.act_on_file(action)
+
+    # def __deduplicate_actions__(self):
+    #     deduper = Deduplicator(self.actions)
+    #     new_actions = deduper.deduplicate_actions()
 
     def execute(self):
         self.__reset_action_totals__()
@@ -104,6 +110,7 @@ class Task(object):
 
         print('Done processing files')
 
+        # self.__deduplicate_actions__()
         self.__perform_actions__()
 
         summary = 'Summary: ' + ', '.join(
@@ -130,10 +137,10 @@ class Task(object):
             print('{} - {}'.format(hash, filepath))
             return
 
-        if hash in self.hashes:
-            self.actions.append(Action.create_delete_action(
-                filepath, reason='Duplicate hash: {}'.format(hash)))
-            return
+        # if hash in self.hashes:
+        #     self.actions.append(Action.create_delete_action(
+        #         filepath, reason='Duplicate hash: {}'.format(hash)))
+        #     return
 
             # TODO: can PdfReader accept/process the same streamed data as Md5Reader?
         contents = self.reader.parse(filepath)
@@ -165,6 +172,10 @@ class Task(object):
             #       How about storing the data objects in a hash of target paths?
             #       Or, key's c
 
+            # OPTIMIZE: likely possible here:
+            #       Let there be 25 copies of a file in a folder.
+            #       Hypothesis: the contents will be hashed 50 times, when we could
+            #       suffice with 25 hashes.
             existing_hash = Md5Reader().parse(new_path)
             if existing_hash == data.get_hash():
                 reason = ('Found duplicate hash ({}) shared by [{}].'.
@@ -172,7 +183,7 @@ class Task(object):
                 action = Action.create_delete_action(data.get_source(), reason=reason)
 
             else:
-                action = Action.create_ignore_action(
+                action = Action.create_dedup_action(
                     filepath,
                     reason=(
                         'Target File [{}] already exists. Ignoring to avoid an overwrite.'

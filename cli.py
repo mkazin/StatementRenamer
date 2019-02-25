@@ -2,7 +2,7 @@ import argparse
 import logging
 import os
 import sys
-from tasks.task import Task
+from statement_renamer.tasks.task import Task
 
 LOG_FILE_NAME = 'Logs/output.log'
 logger = logging.getLogger('StatementRenamer')
@@ -67,3 +67,6 @@ def walkdir(folder):
             # yield os.path.abspath(os.path.join(dirpath, filename))
             results.append(os.path.abspath(os.path.join(dirpath, filename)))
     return results
+
+
+main()

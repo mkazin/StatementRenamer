@@ -8,6 +8,7 @@ class ActionType(enum.Enum):
     delete = 3
     ignore = 2
     rename = 1
+    dedup = 4
 
 
 class Action(object):
@@ -42,3 +43,11 @@ class Action(object):
     @staticmethod
     def create_ignore_action(filepath, reason):
         return Action(ActionType.ignore, filepath, target=None, reason=reason)
+
+    @staticmethod
+    def create_dedup_action(filepath, reason):
+        return Action(ActionType.dedup, filepath, target=None, reason=reason)
+
+    @staticmethod
+    def change_to_dedup(action):
+        action.self.action_type = ActionType.dedup
