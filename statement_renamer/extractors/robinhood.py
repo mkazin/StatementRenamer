@@ -1,6 +1,6 @@
 from datetime import datetime
 from .extractor import DateExtractor, ExtractedData, ExtractorException
-from ..utils.dateutil import DateUtil
+from .utils.dateutil import DateUtil
 
 
 class RobinhoodExtractorException(ExtractorException):
@@ -36,8 +36,3 @@ class RobinhoodDateExtractor(DateExtractor):
         start_date = datetime.strptime(extracted, '%m/%d/%Y')
         end_date = DateUtil.last_day_of_month(start_date)
         return ExtractedData(start_date, end_date)
-
-    def rename(self, extracted_data):
-        return self.__class__.FILE_FORMAT.format(
-            extracted_data.get_end_date().year,
-            extracted_data.get_end_date().month)

@@ -53,8 +53,3 @@ class CapitalOne360DateExtractor(DateExtractor):
                 pass
 
         return ExtractedData(start_date, end_date)
-
-    def rename(self, extracted_data):
-        return self.__class__.FILE_FORMAT.format(
-            extracted_data.get_end_date().year,
-            extracted_data.get_end_date().month)

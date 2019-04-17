@@ -39,8 +39,3 @@ class AWSDateExtractor(DateExtractor):
         start_date = datetime(year, month, start_day)
         end_date = datetime(year, month, end_day)
         return ExtractedData(start_date, end_date)
-
-    def rename(self, extracted_data):
-        return self.__class__.FILE_FORMAT.format(
-            extracted_data.get_end_date().year,
-            extracted_data.get_end_date().month)
