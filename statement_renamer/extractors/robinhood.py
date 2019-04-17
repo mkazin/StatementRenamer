@@ -29,9 +29,7 @@ class RobinhoodDateExtractor(DateExtractor):
         # Re-generated statements will mention the statement has been "corrected":
         extracted = text[start:end].replace('CORRECTED STATEMENT', '')
 
-        if start < 0:
-            raise self.__class__.EXCEPTION(
-                type(self).__name__ + ': Expected text not found')
+        self.__handle_search_failure__(start < 0)
 
         start_date = datetime.strptime(extracted, '%m/%d/%Y')
         end_date = DateUtil.last_day_of_month(start_date)

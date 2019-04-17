@@ -25,9 +25,7 @@ class SocialSecurityDateExtractor(DateExtractor):
             start = text.find(self.__class__.SEARCH_TEXT, start + 1)
             extracted = text[start:start + len(self.__class__.SEARCH_TEXT) + 4]
 
-            if start < 0:
-                raise self.__class__.EXCEPTION(
-                    type(self).__name__ + ': Expected text not found')
+            self.__handle_search_failure__(start < 0)
 
             try:
                 parts = extracted.split(' ')

@@ -26,9 +26,7 @@ class AWSDateExtractor(DateExtractor):
         end = text.find(self.__class__.POST_DATE_TEXT)
         extracted = text[start:end]
 
-        if start < 0:
-            raise self.__class__.EXCEPTION(
-                type(self).__name__ + ': Expected text not found')
+        self.__handle_search_failure__(start < 0)
 
         parts = extracted.split(' ')
         start_day = int(parts[1])
