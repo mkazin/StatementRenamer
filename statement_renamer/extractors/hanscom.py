@@ -14,7 +14,9 @@ class HanscomDateExtractor(DateExtractor):
     DATE_FORMAT = '%m-%d-%y'
     SEARCH_TEXT = 'ACCT#  1'
     END_TEXT = 'PREVIOUS BALANCE'
-    MATCH_TEXT = 'DATETRANSACTION DESCRIPTIONAMOUNTFINANCECHARGEBALANCEMEMBER NO.ENDING DATEBRANCH'
+    MATCH_TEXT = (
+        'DATETRANSACTION DESCRIPTIONAMOUNTFINANCECHARGEBALANCEMEMBER '
+        'NO.ENDING DATEBRANCH')
     FILE_FORMAT = '{:02}-{:02}-Hanscom.pdf'
 
     @staticmethod
@@ -47,12 +49,8 @@ class HanscomDateExtractor(DateExtractor):
 
             except ValueError:
                 print(
-                    "ValueError at index: [{}:{}] - [{}]".format(start, end, text[start:end]))
+                    "ValueError at index: [{}:{}] - [{}]"
+                    .format(start, end, text[start:end]))
                 pass
 
         return ExtractedData(start_date, end_date)
-
-    def rename(self, extracted_data):
-        return self.__class__.FILE_FORMAT.format(
-            extracted_data.get_end_date().year,
-            extracted_data.get_end_date().month)

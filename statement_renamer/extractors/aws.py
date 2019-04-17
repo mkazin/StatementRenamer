@@ -26,9 +26,7 @@ class AWSDateExtractor(DateExtractor):
         end = text.find(self.__class__.POST_DATE_TEXT)
         extracted = text[start:end]
 
-        if start < 0:
-            raise self.__class__.EXCEPTION(
-                type(self).__name__ + ': Expected text not found')
+        self.__handle_search_failure__(start < 0)
 
         parts = extracted.split(' ')
         start_day = int(parts[1])
@@ -39,8 +37,3 @@ class AWSDateExtractor(DateExtractor):
         start_date = datetime(year, month, start_day)
         end_date = datetime(year, month, end_day)
         return ExtractedData(start_date, end_date)
-
-    def rename(self, extracted_data):
-        return self.__class__.FILE_FORMAT.format(
-            extracted_data.get_end_date().year,
-            extracted_data.get_end_date().month)

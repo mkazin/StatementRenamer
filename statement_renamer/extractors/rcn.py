@@ -119,10 +119,3 @@ class RcnDateExtractor(DateExtractor):
 
         return self.__class__.FILE_FORMAT.format(
             output_date.year, output_date.month)
-
-
-# Handy utility function courtesy of Augusto Men of StackOverflow:
-# https://stackoverflow.com/questions/42950/get-last-day-of-the-month-in-python
-def last_day_of_month(any_day):
-    next_month = any_day.replace(day=28) + datetime.timedelta(days=4)
-    return next_month - datetime.timedelta(days=next_month.day)

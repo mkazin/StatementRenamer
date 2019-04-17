@@ -15,15 +15,18 @@ class DateExtractor(metaclass=abc.ABCMeta):
             Return class is ExtractedData, used in rename()
         """
 
-    @abc.abstractmethod
     def rename(self, extracted_data):
         """ Return a string with a new name for the file.
         """
+        return self.__class__.FILE_FORMAT.format(
+            extracted_data.get_end_date().year,
+            extracted_data.get_end_date().month)
 
     def __handle_search_failure__(self, condition):
         if condition:
             raise self.__class__.EXCEPTION(
                 type(self).__name__ + ': Expected text not found')
+
 
 class ExtractedData(object):
 
