@@ -1,6 +1,4 @@
-from datetime import datetime
 from .extractor import DateExtractor, ExtractedData, ExtractorException
-from .utils.dateutil import DateUtil
 
 
 class ETradeExtractorException(ExtractorException):
@@ -16,21 +14,12 @@ class ETradeDateExtractor(DateExtractor):
     PRE_DATE_TEXT = 'Statement Period :  '
     POST_DATE_TEXT = 'Account Type'
     FILE_FORMAT = '{}-{:02} E-Trade Statement.pdf'
+    DATE_FORMAT = '%B %d, %Y'
+    SPLIT_TEXT = ' - '
 
     @staticmethod
     def match(text):
         return (__class__.MATCH_TEXT in text)
 
     def extract(self, text):
-        start = text.find(self.__class__.PRE_DATE_TEXT) + \
-            len(self.__class__.PRE_DATE_TEXT)
-        end = text.find(self.__class__.POST_DATE_TEXT)
-
-        extracted = text[start:end].split(' - ')
-
-        self.__handle_search_failure__(len(extracted) < 2)
-
-        start_date = datetime.strptime(extracted[0], '%B %d, %Y')
-        end_date = datetime.strptime(extracted[1], '%B %d, %Y')
-        # end_date = DateUtil.last_day_of_month(start_date)
-        return ExtractedData(start_date, end_date)
+        return self._pre_post_split_extraction_(text)
