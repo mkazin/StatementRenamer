@@ -12,5 +12,6 @@ before_script:
 script:
         - "pytest --cov=statement_renamer tests"
 after_script:
-        - ./cc-test-reporter --token $CODECLIMATE_REPO_TOKEN
+        - ./cc-test-reporter after-build
+        - ./cc-test-reporter after-build --help
         - codecov --token $CODECLIMATE_REPO_TOKEN
