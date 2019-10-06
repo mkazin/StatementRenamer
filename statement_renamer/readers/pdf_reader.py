@@ -23,4 +23,21 @@ class PdfReader(Reader):
         outfp.seek(0)
         contents = outfp.read()
 
-        return contents
+        return PdfReader._replace_cids_(contents)
+
+    """ 
+        Decodes text encoded in ASCII values
+        For example you'll see this in E*Trade:
+        (cid:67)(cid:65)(cid:83)(cid:72)(cid:32)(cid:38)(cid:32)(cid:67)(cid:65)(cid:83)(cid:72)(cid:32)(cid:69)
+        (cid:81)(cid:85)(cid:73)(cid:86)(cid:65)(cid:76)(cid:69)(cid:78)(cid:84)(cid:83)
+    """
+    @staticmethod
+    def _replace_cids_(contents):
+        replacement = contents
+        start = replacement.find('(cid:')
+        while start >= 0:
+            end = replacement.find(')', start+1)
+            value = int(replacement[start+5:end])
+            replacement = replacement[:start] + chr(value) + replacement[end+1:]
+            start = replacement.find('(cid:', start + 1)
+        return replacement

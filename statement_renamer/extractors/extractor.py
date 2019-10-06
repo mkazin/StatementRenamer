@@ -1,4 +1,5 @@
 import abc
+from datetime import datetime
 
 
 class DateExtractor(metaclass=abc.ABCMeta):
@@ -26,6 +27,24 @@ class DateExtractor(metaclass=abc.ABCMeta):
         if condition:
             raise self.__class__.EXCEPTION(
                 type(self).__name__ + ': Expected text not found')
+
+    """
+        Pre-defined extraction method using:
+        * Two strings to locate the date range
+        * A split value to separate start from end dates
+    """
+
+    def _pre_post_split_extraction_(self, text):
+        start = text.find(self.PRE_DATE_TEXT) + len(self.PRE_DATE_TEXT)
+        end = text.find(self.__class__.POST_DATE_TEXT)
+
+        extracted = text[start:end].split(self.SPLIT_TEXT)
+
+        self.__handle_search_failure__(len(extracted) < 2)
+
+        start_date = datetime.strptime(extracted[0], self.DATE_FORMAT)
+        end_date = datetime.strptime(extracted[1], self.DATE_FORMAT)
+        return ExtractedData(start_date, end_date)
 
 
 class ExtractedData(object):
