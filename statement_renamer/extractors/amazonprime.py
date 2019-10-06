@@ -26,12 +26,10 @@ class AmazonPrimeDateExtractor(DateExtractor):
             len(self.__class__.PRE_DATE_TEXT)
         end = text.find(self.__class__.POST_DATE_TEXT)
 
-        # Re-generated statements will mention the statement has been "corrected":
         extracted = text[start:end].split(' - ')
 
         self.__handle_search_failure__(len(extracted) < 2)
 
         start_date = datetime.strptime(extracted[0], '%m/%d/%y')
         end_date = datetime.strptime(extracted[1], '%m/%d/%y')
-        # end_date = DateUtil.last_day_of_month(start_date)
         return ExtractedData(start_date, end_date)

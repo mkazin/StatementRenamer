@@ -13,7 +13,7 @@ class ETradeDateExtractor(DateExtractor):
 
     EXCEPTION = ETradeExtractorException
     MATCH_TEXT = 'visitwww.etrade.com,orcallusat1-800-387-2331'
-    PRE_DATE_TEXT = 'Statement Period :  '  # February 1, 2019 - March 31, 2019'
+    PRE_DATE_TEXT = 'Statement Period :  '
     POST_DATE_TEXT = 'Account Type'
     FILE_FORMAT = '{}-{:02} E-Trade Statement.pdf'
 
@@ -26,7 +26,6 @@ class ETradeDateExtractor(DateExtractor):
             len(self.__class__.PRE_DATE_TEXT)
         end = text.find(self.__class__.POST_DATE_TEXT)
 
-        # Re-generated statements will mention the statement has been "corrected":
         extracted = text[start:end].split(' - ')
 
         self.__handle_search_failure__(len(extracted) < 2)
