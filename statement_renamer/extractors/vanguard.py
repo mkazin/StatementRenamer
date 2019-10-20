@@ -30,8 +30,6 @@ class VanguardDateExtractor(DateExtractor):
             self.__get_date_following__(
                 text, self.__class__.END_TEXT))
 
-        return data
-
     def __get_date_following__(self, text, clause):
 
         start = 0
