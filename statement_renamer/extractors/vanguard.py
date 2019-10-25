@@ -49,6 +49,4 @@ class VanguardDateExtractor(DateExtractor):
                 pass
 
     def rename(self, extracted_data):
-        return self.__class__.FILE_FORMAT.format(
-            extracted_data.get_end_date().year,
-            extracted_data.get_end_date().month // 3)
+        return self._rename_using_quarter_(extracted_data)

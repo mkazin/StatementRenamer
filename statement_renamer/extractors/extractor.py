@@ -17,24 +17,23 @@ class DateExtractor(metaclass=abc.ABCMeta):
         """
 
     def rename(self, extracted_data):
-        """ Return a string with a new name for the file.
         """
-        return self.__class__.FILE_FORMAT.format(
-            extracted_data.get_end_date().year,
-            extracted_data.get_end_date().month)
+            Return a string with a new name for the file. 
+            Defaults to using month and year.
+        """
+        return self._rename_using_month_(extracted_data)
 
     def __handle_search_failure__(self, condition):
         if condition:
             raise self.__class__.EXCEPTION(
                 type(self).__name__ + ': Expected text not found')
 
-    """
-        Pre-defined extraction method using:
-        * Two strings to locate the date range
-        * A split value to separate start from end dates
-    """
-
     def _pre_post_split_extraction_(self, text):
+        """
+            Pre-defined extraction method using:
+            * Two strings to locate the date range
+            * A split value to separate start from end dates
+        """
         start = text.find(self.PRE_DATE_TEXT) + len(self.PRE_DATE_TEXT)
         end = text.find(self.__class__.POST_DATE_TEXT)
 
@@ -45,6 +44,24 @@ class DateExtractor(metaclass=abc.ABCMeta):
         start_date = datetime.strptime(extracted[0], self.DATE_FORMAT)
         end_date = datetime.strptime(extracted[1], self.DATE_FORMAT)
         return ExtractedData(start_date, end_date)
+
+    def _rename_using_month_(self, extracted_data):
+        """
+            Pre-defined rename method using an extractor class' FILE_FORMAT string as the string,
+            having parameter #0 as the year and parameter #1 as the month.
+        """
+        return self.__class__.FILE_FORMAT.format(
+            extracted_data.get_end_date().year,
+            extracted_data.get_end_date().month)
+
+    def _rename_using_quarter_(self, extracted_data):
+        """
+            Pre-defined rename method using an extractor class' FILE_FORMAT string as the string,
+            having parameter #0 as the year and parameter #1 as the quarter.
+        """
+        return self.__class__.FILE_FORMAT.format(
+            extracted_data.get_end_date().year,
+            extracted_data.get_end_date().month // 3)
 
 
 class ExtractedData(object):
