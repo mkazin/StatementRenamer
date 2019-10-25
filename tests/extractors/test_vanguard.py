@@ -17,7 +17,7 @@ def test_vanguard_quarterly_statement():
 
     assert data.get_start_date() == datetime(2016, 12, 31)
     assert data.get_end_date() == datetime(2017, 12, 31)
-    assert new_name == '2017-Q4 Quarterly Statement.pdf'
+    assert new_name == '2017-Q4 Vanguard Quarterly Statement.pdf'
 
 
 def test_factory():

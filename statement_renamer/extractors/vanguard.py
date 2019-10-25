@@ -14,7 +14,7 @@ class VanguardDateExtractor(DateExtractor):
     DATE_FORMAT = '%m/%d/%Y'
     SEARCH_TEXT = 'Beginning balance on '
     END_TEXT = 'Ending balance on '
-    FILE_FORMAT = '{:2}-Q{} Quarterly Statement.pdf'
+    FILE_FORMAT = '{:2}-Q{} Vanguard Quarterly Statement.pdf'
 
     @staticmethod
     def match(text):
