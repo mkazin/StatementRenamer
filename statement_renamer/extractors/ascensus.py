@@ -11,7 +11,7 @@ class AscensusExtractorException(ExtractorException):
 class AscensusDateExtractor(DateExtractor):
 
     DATE_FORMAT = '%m/%d/%y'
-    FILE_FORMAT = '2015-Q{}-AcensusQuarterly.pdf'
+    FILE_FORMAT = '{0}-Q{1}-AcensusQuarterly.pdf'
 
     @staticmethod
     def match(text):
@@ -46,5 +46,4 @@ class AscensusDateExtractor(DateExtractor):
         return ExtractedData(start_date, end_date)
 
     def rename(self, extracted_data):
-        return self.__class__.FILE_FORMAT.format(
-            extracted_data.get_end_date().month // 3)
+        return self._rename_using_quarter_(extracted_data)

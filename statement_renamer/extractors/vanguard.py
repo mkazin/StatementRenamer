@@ -14,7 +14,7 @@ class VanguardDateExtractor(DateExtractor):
     DATE_FORMAT = '%m/%d/%Y'
     SEARCH_TEXT = 'Beginning balance on '
     END_TEXT = 'Ending balance on '
-    FILE_FORMAT = '{:2}-Q{} Quarterly Statement.pdf'
+    FILE_FORMAT = '{:2}-Q{} Vanguard Quarterly Statement.pdf'
 
     @staticmethod
     def match(text):
@@ -49,6 +49,4 @@ class VanguardDateExtractor(DateExtractor):
                 pass
 
     def rename(self, extracted_data):
-        return self.__class__.FILE_FORMAT.format(
-            extracted_data.get_end_date().year,
-            extracted_data.get_end_date().month // 3)
+        return self._rename_using_quarter_(extracted_data)
