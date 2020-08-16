@@ -3,17 +3,19 @@ from .reader import Reader, ReaderException
 
 
 class Md5Reader(Reader):
-
+    """ MD5 hash reader for small files """
     def parse(self, fname):
-        """ Assumes the input file [fname] is small enough to read in its entirety\
-            into memory.  This should be fixed to use a temporary file otherwise. """
+        '''
+        Assumes the input file [fname] is small enough to read in its entirety\
+        into memory.  This should be fixed to use a temporary file otherwise.
+        '''
 
         try:
-            m = hashlib.md5()
+            md5 = hashlib.md5()
 
             with open(fname, "rb") as fp:
-                m.update(fp.read())
+                md5.update(fp.read())
 
-            return m.hexdigest()
-        except Exception as e:
-            raise ReaderException(e)
+            return md5.hexdigest()
+        except Exception as ex:
+            raise ReaderException(ex)
