@@ -1,18 +1,18 @@
 import os
 
-from extractors.extractor import ExtractorException
-from extractors.factory import ExtractorFactory
-from formatters.date_formatter import DateFormatter
-from readers.md5_reader import Md5Reader
-from readers.pdf_reader import PdfReader
-from readers.reader_exception import ReaderException
-from tasks.action import ActionType, Action
 from tqdm import tqdm
+from statement_renamer.extractors.extractor import ExtractorException
+from statement_renamer.extractors.factory import ExtractorFactory
+from statement_renamer.formatters.date_formatter import DateFormatter
+from statement_renamer.readers.md5_reader import Md5Reader
+from statement_renamer.readers.pdf_reader import PdfReader
+from statement_renamer.readers.reader_exception import ReaderException
+from .action import ActionType, Action
 
 
 def walkdir(folder):
     """Walk through each files in a directory"""
-    for dirpath, dirs, files in os.walk(folder):
+    for dirpath, _, files in os.walk(folder):
         for filename in files:
             yield os.path.abspath(os.path.join(dirpath, filename))
 
@@ -125,14 +125,14 @@ class Task(object):
         """
 
         # TODO: perform this every time? Or only when we find a duplicate target filename?
-        hash = Md5Reader().parse(filepath)
+        file_hash = Md5Reader().parse(filepath)
         if self.config.hash_only:
-            print('{} - {}'.format(hash, filepath))
+            print('{} - {}'.format(file_hash, filepath))
             return
 
-        if hash in self.hashes:
+        if file_hash in self.hashes:
             self.actions.append(Action.create_delete_action(
-                filepath, reason='Duplicate hash: {}'.format(hash)))
+                filepath, reason='Duplicate hash: {}'.format(file_hash)))
             return
 
             # TODO: can PdfReader accept/process the same streamed data as Md5Reader?
@@ -147,13 +147,13 @@ class Task(object):
         data = extractor.extract(contents)
 
         data.set_source(filepath)
-        data.set_hash(hash)
+        data.set_hash(file_hash)
 
         new_name = extractor.rename(data)
         old_name = filepath.split('/')[-1]
         new_path = filepath[0:filepath.rfind('/') + 1] + new_name
 
-        self.hashes.append(hash)
+        self.hashes.append(file_hash)
 
         if old_name == new_name:
             action = Action.create_ignore_action(
@@ -167,8 +167,8 @@ class Task(object):
 
             existing_hash = Md5Reader().parse(new_path)
             if existing_hash == data.get_hash():
-                reason = ('Found duplicate hash ({}) shared by [{}].'.
-                          format(existing_hash, new_path, data.get_source()))
+                reason = ('{} matches existing hash ({}) - shared by [{}].'.
+                          format(data.get_source(), existing_hash, new_path))
                 action = Action.create_delete_action(data.get_source(), reason=reason)
 
             else:

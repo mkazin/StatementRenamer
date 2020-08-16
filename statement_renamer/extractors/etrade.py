@@ -1,4 +1,4 @@
-from .extractor import DateExtractor, ExtractedData, ExtractorException
+from .extractor import DateExtractor, ExtractorException
 
 
 class ETradeExtractorException(ExtractorException):
@@ -19,7 +19,7 @@ class ETradeDateExtractor(DateExtractor):
 
     @staticmethod
     def match(text):
-        return (__class__.MATCH_TEXT in text)
+        return __class__.MATCH_TEXT in text
 
     def extract(self, text):
         return self._pre_post_split_extraction_(text)

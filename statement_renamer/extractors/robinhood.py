@@ -19,7 +19,7 @@ class RobinhoodDateExtractor(DateExtractor):
 
     @staticmethod
     def match(text):
-        return (__class__.MATCH_TEXT in text)
+        return __class__.MATCH_TEXT in text
 
     def extract(self, text):
         start = text.find(self.__class__.PRE_DATE_TEXT) + \

@@ -28,4 +28,4 @@ def test_factory():
 
     extractor = ExtractorFactory.get_matching_extractor(TESTDATA)
 
-    assert type(extractor) is RobinhoodDateExtractor
+    assert isinstance(extractor, RobinhoodDateExtractor)
