@@ -1,6 +1,7 @@
-from statement_renamer.extractors.etrade import ETradeDateExtractor as EXPECTED_EXTRACTOR
-from statement_renamer.extractors.factory import ExtractorFactory
 from datetime import datetime
+
+from statement_renamer.extractors.etrade import ETradeDateExtractor as EXTRACTOR_UNDER_TEST
+from statement_renamer.extractors.factory import ExtractorFactory
 
 TESTDATA = (
     """
@@ -13,7 +14,7 @@ TESTDATA = (
 
 def test_monthly_statement():
 
-    extractor = EXPECTED_EXTRACTOR()
+    extractor = EXTRACTOR_UNDER_TEST()
     data = extractor.extract(TESTDATA)
     new_name = extractor.rename(data)
 
@@ -26,4 +27,4 @@ def test_factory():
 
     extractor = ExtractorFactory.get_matching_extractor(TESTDATA)
 
-    assert type(extractor) is EXPECTED_EXTRACTOR
+    assert isinstance(extractor, EXTRACTOR_UNDER_TEST)
