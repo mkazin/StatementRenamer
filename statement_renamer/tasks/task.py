@@ -73,7 +73,6 @@ class Task(object):
 
         elif os.path.isdir(self.config.location):
 
-            dir_name = self.config.location
             for curr_file in tqdm(walkdir(self.config.location),
                                   disable=self.config.quiet or self.config.verbose,
                                   desc='Processing Files', unit=' files'):
@@ -85,19 +84,19 @@ class Task(object):
 
                 try:
                     self.determine_action_for_file(curr_path)
-                except ReaderException as e:
+                except ReaderException as ex:
                     # print('Failed to read {} : {}'.format(
-                    #     curr_path, str(e)))
+                    #     curr_path, str(ex)))
                     self.actions.append(Action.create_ignore_action(
                         curr_path, reason='Failed to read file {}'.format(curr_path)))
-                    self.logger.exception(e)
+                    self.logger.exception(ex)
                     continue
-                except ExtractorException as e:
+                except ExtractorException as ex:
                     # print('Failed to extract {} : {}'.format(
-                    #     curr_path, str(e)))
+                    #     curr_path, str(ex)))
                     self.actions.append(Action.create_ignore_action(
-                        curr_path, reason=str(e)))  # 'Failed to extract text from PDF'
-                    self.logger.exception(e)
+                        curr_path, reason=str(ex)))  # 'Failed to extract text from PDF'
+                    self.logger.exception(ex)
                     continue
         else:
             print("Error: file or folder not found: {}".format(self.config.location))

@@ -13,7 +13,7 @@ class ActionType(enum.Enum):
     rename = 1
 
 
-class Action(object):
+class Action():
     """ Defines the action which should be taken on a file """
 
     def __init__(self, action_type, source, target=None, reason=None):

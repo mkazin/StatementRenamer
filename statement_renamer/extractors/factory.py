@@ -25,7 +25,8 @@ class ExtractorFactory(object):
         # Implementation note: the "extractor" variable here is the current extractor class being
         # tested for a match. At the return statement it is followed with parentheses to
         # instantiate an object of that class.
-        # It's a neat little trick of Python, as is the __subclasses__ getter.
+        # It's a neat little trick of Python, as is the __subclasses__ getter, which works thanks
+        # to the code in extractors/__init__.py .
         # --mkazin
         for extractor in DateExtractor.__subclasses__():
             if extractor.match(text):

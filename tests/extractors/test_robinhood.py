@@ -1,6 +1,6 @@
-from statement_renamer.extractors.robinhood import RobinhoodDateExtractor
-from statement_renamer.extractors.factory import ExtractorFactory
 from datetime import datetime
+from statement_renamer.extractors.robinhood import RobinhoodDateExtractor as EXTRACTOR_UNDER_TEST
+from statement_renamer.extractors.factory import ExtractorFactory
 
 TESTDATA = (
     'Page 1 of 6 Robinhood85 Willow Rd, Menlo Park, CA 94025support@robinhood.com02/01/2019 to 02/28/2019Montgomery Burns Account #:12345678900 '
@@ -15,7 +15,7 @@ TESTDATA = (
 
 def test_robinhood_monthly_statement():
 
-    extractor = RobinhoodDateExtractor()
+    extractor = EXTRACTOR_UNDER_TEST()
     data = extractor.extract(TESTDATA)
     new_name = extractor.rename(data)
 
@@ -28,4 +28,4 @@ def test_factory():
 
     extractor = ExtractorFactory.get_matching_extractor(TESTDATA)
 
-    assert isinstance(extractor, RobinhoodDateExtractor)
+    assert isinstance(extractor, EXTRACTOR_UNDER_TEST)
