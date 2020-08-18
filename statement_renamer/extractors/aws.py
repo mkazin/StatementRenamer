@@ -14,7 +14,7 @@ class AWSDateExtractor(DateExtractor):
     MATCH_TEXT = 'All AWS Services are sold by Amazon Web Services, Inc.'
     PRE_DATE_TEXT = 'This invoice is for the billing period '
     POST_DATE_TEXT = 'Greetings from Amazon Web Services'
-    FILE_FORMAT = '{}-{:02} AWS Invoice.pdf'
+    FILE_FORMAT = '{}-{:02} - AWS Invoice.pdf'
 
     @staticmethod
     def match(text):

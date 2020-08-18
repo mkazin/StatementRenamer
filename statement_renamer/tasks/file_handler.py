@@ -35,17 +35,23 @@ class FileHandler(ABC):
     def file_exists(self, location):
         """ Return true if a file exists at location """
 
-    @staticmethod
     @abstractmethod
-    def _rename_handler_(task, action):
+    def pathname(self, location):
+        """ Returns the file's name, not including any path """
+
+    @abstractmethod
+    def basename(self, location):
+        """ Returns the file's name, not including any path """
+
+
+    @abstractmethod
+    def _rename_handler_(self, task, action):
         """ Handles the Rename operation for the provided Action """
 
-    @staticmethod
     @abstractmethod
-    def _delete_handler_(task, action):
+    def _delete_handler_(self, task, action):
         """ Handles the Delete operation for the provided Action """
 
-    @staticmethod
     @abstractmethod
-    def _ignore_handler_(task, action):
+    def _ignore_handler_(self, task, action):
         """ Handles the Ignore operation for the provided Action """

@@ -4,6 +4,7 @@ import logging
 # import os
 import sys
 from statement_renamer.tasks.task import Task
+from statement_renamer.tasks.disk_file_handler import DiskFileHandler
 
 LOG_FILE_NAME = 'Logs/output.log'
 logger = logging.getLogger('StatementRenamer')
@@ -53,7 +54,7 @@ def main():
 
     try:
         # TODO: decouple the CLI arguments from the Task class. Possibly with a TaskBuilder?
-        task = Task(parser, logger)
+        task = Task(parser, DiskFileHandler, logger)
         task.execute()
     except Exception as ex:
         logger.exception(ex)

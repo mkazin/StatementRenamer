@@ -13,7 +13,7 @@ class ETradeDateExtractor(DateExtractor):
     MATCH_TEXT = 'visitwww.etrade.com,orcallusat1-800-387-2331'
     PRE_DATE_TEXT = 'Statement Period :  '
     POST_DATE_TEXT = 'Account Type'
-    FILE_FORMAT = '{}-{:02} E-Trade Statement.pdf'
+    FILE_FORMAT = '{}-{:02} - E-Trade Statement.pdf'
     DATE_FORMAT = '%B %d, %Y'
     SPLIT_TEXT = ' - '
 

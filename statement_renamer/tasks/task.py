@@ -1,4 +1,5 @@
 """ Primary functionality and configuration of StatementRenamer """
+import os
 from tqdm import tqdm
 from statement_renamer.extractors.extractor import ExtractorException
 from statement_renamer.extractors.factory import ExtractorFactory
@@ -40,13 +41,13 @@ class Task():
 
 
 
-    def __init__(self, parser, file_handler, logger=None):
+    def __init__(self, parser, file_handler_class, logger=None):
         self.config = Task.Config.from_parser(parser)
         # TODO: inject these
         self.reader = PdfReader()
         self.date_formatter = DateFormatter()
-        self.file_handler = file_handler
         self.logger = logger
+        self.file_handler = file_handler_class(self.config, self.logger)
 
         self.actions = []
         self.hashes = []
@@ -150,9 +151,10 @@ class Task():
         data.set_source(filepath)
         data.set_hash(file_hash)
 
+        # TODO: don't automatically reuse the input location, allow for a specified target location
         new_name = extractor.rename(data)
-        old_name = filepath.split('/')[-1]
-        new_path = filepath[0:filepath.rfind('/') + 1] + new_name
+        old_name = self.file_handler.basename(filepath)
+        new_path = self.file_handler.build_path(self.file_handler.pathname(filepath), new_name)
 
         self.hashes.append(file_hash)
 
