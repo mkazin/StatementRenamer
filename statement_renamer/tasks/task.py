@@ -1,5 +1,4 @@
-import os
-
+""" Primary functionality and configuration of StatementRenamer """
 from tqdm import tqdm
 from statement_renamer.extractors.extractor import ExtractorException
 from statement_renamer.extractors.factory import ExtractorFactory
@@ -10,16 +9,11 @@ from statement_renamer.readers.reader_exception import ReaderException
 from .action import ActionType, Action
 
 
-def walkdir(folder):
-    """Walk through each files in a directory"""
-    for dirpath, _, files in os.walk(folder):
-        for filename in files:
-            yield os.path.abspath(os.path.join(dirpath, filename))
+class Task():
+    """ Central task of StatementRenamer. Uses Config to define parameters of execution """
 
-class Task(object):
-
-    class Config(object):
-
+    class Config():
+        """ Data object holding the parameters of the task to execute """
         @staticmethod
         def __get_val_or__(obj, field, default):
             if obj:
@@ -28,6 +22,7 @@ class Task(object):
 
         @staticmethod
         def from_parser(parser):
+            """ Instantiates a Config object based on values in ArgumentParser """
             args = parser.parse_args()
             return Task.Config(
                 location=args.location, quiet=args.quiet, verbose=args.verbose,
@@ -43,11 +38,14 @@ class Task(object):
             self.hash_only = hash_only
             self.extract_only = extract_only
 
-    def __init__(self, parser, logger=None):
+
+
+    def __init__(self, parser, file_handler, logger=None):
         self.config = Task.Config.from_parser(parser)
         # TODO: inject these
         self.reader = PdfReader()
         self.date_formatter = DateFormatter()
+        self.file_handler = file_handler
         self.logger = logger
 
         self.actions = []
@@ -68,36 +66,12 @@ class Task(object):
     def execute(self):
         self.__reset_action_totals__()
 
-        if os.path.isfile(self.config.location):
+        if self.file_handler.is_file(self.config.location):
             self.determine_action_for_file(self.config.location)
 
-        elif os.path.isdir(self.config.location):
+        elif self.file_handler.is_folder(self.config.location):
+            self.handle_folder()
 
-            for curr_file in tqdm(walkdir(self.config.location),
-                                  disable=self.config.quiet or self.config.verbose,
-                                  desc='Processing Files', unit=' files'):
-                dir_name = os.path.dirname(curr_file)
-                curr_path = curr_file  # (dir_name + '/' + curr_file).replace('//', '/')
-                self.logger.info('Processing: {}'.format(curr_path))
-                if self.config.verbose:
-                    print('Processing: {}'.format(curr_path))
-
-                try:
-                    self.determine_action_for_file(curr_path)
-                except ReaderException as ex:
-                    # print('Failed to read {} : {}'.format(
-                    #     curr_path, str(ex)))
-                    self.actions.append(Action.create_ignore_action(
-                        curr_path, reason='Failed to read file {}'.format(curr_path)))
-                    self.logger.exception(ex)
-                    continue
-                except ExtractorException as ex:
-                    # print('Failed to extract {} : {}'.format(
-                    #     curr_path, str(ex)))
-                    self.actions.append(Action.create_ignore_action(
-                        curr_path, reason=str(ex)))  # 'Failed to extract text from PDF'
-                    self.logger.exception(ex)
-                    continue
         else:
             print("Error: file or folder not found: {}".format(self.config.location))
 
@@ -113,6 +87,34 @@ class Task(object):
             if self.config.simulate:
                 summary = 'SIMULATED ' + summary
             print(summary)
+
+    def handle_folder(self):
+        """ Iterates over the files in the configured folder """
+        for curr_file in tqdm(self.file_handler.walkdir(self.config.location),
+                              disable=self.config.quiet or self.config.verbose,
+                              desc='Processing Files', unit=' files'):
+            # dir_name = os.path.dirname(curr_file)
+            curr_path = curr_file  # (dir_name + '/' + curr_file).replace('//', '/')
+            self.logger.info('Processing: {}'.format(curr_path))
+            if self.config.verbose:
+                print('Processing: {}'.format(curr_path))
+
+            try:
+                self.determine_action_for_file(curr_path)
+            except ReaderException as ex:
+                # print('Failed to read {} : {}'.format(
+                #     curr_path, str(ex)))
+                self.actions.append(Action.create_ignore_action(
+                    curr_path, reason='Failed to read file {}'.format(curr_path)))
+                self.logger.exception(ex)
+                continue
+            except ExtractorException as ex:
+                # print('Failed to extract {} : {}'.format(
+                #     curr_path, str(ex)))
+                self.actions.append(Action.create_ignore_action(
+                    curr_path, reason=str(ex)))  # 'Failed to extract text from PDF'
+                self.logger.exception(ex)
+                continue
 
     def determine_action_for_file(self, filepath):
         """ Determine the action required on the specified file:
@@ -157,7 +159,7 @@ class Task(object):
         if old_name == new_name:
             action = Action.create_ignore_action(
                 filepath, reason='Already named correctly')
-        elif os.path.isfile(new_path):
+        elif self.file_handler.file_exists(new_path):
 
             # TODO: this isn't good enough to avoid an overwrite, as there is no
             #       coordination between files.
@@ -184,20 +186,10 @@ class Task(object):
         if self.config.verbose:
             print('Adding action: {}'.format(action))
 
-    def _perform_rename_(self, action):
-        """ Perform the rename operation in the provided Action """
-        if os.path.isfile(action.target):
-            error_text = (
-                'Aborting action {} to avoid overwrite of target'.format(action))
-            if not self.config.quiet:
-                print(error_text)
-            self.logger.error(error_text)
-            return
-        os.rename(action.source, action.target)
-
     def act_on_file(self, action):
+        """ Breakout function to each type for a single Action. Respects simulation config. """
 
-        # Increment action total
+        # Increment counter for this action's type
         self.action_totals[action.action_type.name] += 1
 
         if self.config.simulate:
@@ -205,8 +197,4 @@ class Task(object):
                 print('SIMULATION ' + str(action))
             return
 
-        if action.action_type is ActionType.rename:
-            self._perform_rename_(action)
-
-        elif action.action_type is ActionType.delete:
-            os.remove(action.source)
+        self.file_handler.handle(self, action)

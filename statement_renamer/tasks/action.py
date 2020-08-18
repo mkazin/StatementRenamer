@@ -45,7 +45,6 @@ class Action():
         """ Creates an Action for renaming a file """
         return Action(ActionType.rename, source_filepath, target_filepath)
 
-
     @staticmethod
     def create_ignore_action(filepath, reason):
         """ Creates an Action for ignoring a file """
