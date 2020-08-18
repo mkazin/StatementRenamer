@@ -103,15 +103,11 @@ class Task():
             try:
                 self.determine_action_for_file(curr_path)
             except ReaderException as ex:
-                # print('Failed to read {} : {}'.format(
-                #     curr_path, str(ex)))
                 self.actions.append(Action.create_ignore_action(
                     curr_path, reason='Failed to read file {}'.format(curr_path)))
                 self.logger.exception(ex)
                 continue
             except ExtractorException as ex:
-                # print('Failed to extract {} : {}'.format(
-                #     curr_path, str(ex)))
                 self.actions.append(Action.create_ignore_action(
                     curr_path, reason=str(ex)))  # 'Failed to extract text from PDF'
                 self.logger.exception(ex)

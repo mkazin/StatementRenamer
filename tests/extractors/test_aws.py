@@ -23,7 +23,7 @@ def test_aws_yearly_statement():
 
     assert data.get_start_date() == datetime(2016, 7, 1)
     assert data.get_end_date() == datetime(2016, 7, 31)
-    assert new_name == '2016-07 AWS Invoice.pdf'
+    assert new_name == '2016-07 - AWS Invoice.pdf'
 
 
 def test_factory():

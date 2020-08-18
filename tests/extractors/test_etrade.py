@@ -20,7 +20,7 @@ def test_monthly_statement():
 
     assert data.get_start_date() == datetime(2019, 2, 1)
     assert data.get_end_date() == datetime(2019, 3, 31)
-    assert new_name == '2019-03 E-Trade Statement.pdf'
+    assert new_name == '2019-03 - E-Trade Statement.pdf'
 
 
 def test_factory():
