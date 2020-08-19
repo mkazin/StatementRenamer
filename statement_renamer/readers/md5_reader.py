@@ -1,20 +1,25 @@
+""" MD5 hash reader for files on disk """
 import hashlib
 from .reader import Reader, ReaderException
 
 
 class Md5Reader(Reader):
-    """ MD5 hash reader for small files """
+    """ Primary class """
+
+    CHUNK_SIZE = 8192
+
     def parse(self, fname):
-        '''
-        Assumes the input file [fname] is small enough to read in its entirety\
-        into memory.  This should be fixed to use a temporary file otherwise.
-        '''
+        """ Reads the provided file from disk in chunks and returns an MD5 hash its content """
 
         try:
             md5 = hashlib.md5()
 
             with open(fname, "rb") as fp:
-                md5.update(fp.read())
+
+                chunk = fp.read(Md5Reader.CHUNK_SIZE)
+                while chunk:
+                    md5.update(chunk)
+                    chunk = fp.read(Md5Reader.CHUNK_SIZE)
 
             return md5.hexdigest()
         except Exception as ex:

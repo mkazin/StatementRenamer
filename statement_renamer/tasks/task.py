@@ -1,5 +1,4 @@
 """ Primary functionality and configuration of StatementRenamer """
-import os
 from tqdm import tqdm
 from statement_renamer.extractors.extractor import ExtractorException
 from statement_renamer.extractors.factory import ExtractorFactory
@@ -26,13 +25,14 @@ class Task():
             """ Instantiates a Config object based on values in ArgumentParser """
             args = parser.parse_args()
             return Task.Config(
-                location=args.location, quiet=args.quiet, verbose=args.verbose,
+                location=args.location, destination=args.destination, quiet=args.quiet, verbose=args.verbose,
                 simulate=args.simulate, hash_only=args.hash_only, extract_only=args.extract_only)
 
-        def __init__(self, location,
+        def __init__(self, location, destination=None,
                      quiet=False, verbose=False, simulate=False,
                      hash_only=False, extract_only=False):
             self.location = location
+            self.destination = destination,
             self.quiet = quiet
             self.verbose = verbose
             self.simulate = simulate
@@ -74,9 +74,9 @@ class Task():
             self.handle_folder()
 
         else:
-            print("Error: file or folder not found: {}".format(self.config.location))
+            self.logger.error("Error: file or folder not found: %s", self.config.location)
 
-        print('Done processing files')
+        self.logger.debug('Done processing files')
 
         self.__perform_actions__()
 
@@ -147,10 +147,11 @@ class Task():
         data.set_source(filepath)
         data.set_hash(file_hash)
 
-        # TODO: don't automatically reuse the input location, allow for a specified target location
         new_name = extractor.rename(data)
         old_name = self.file_handler.basename(filepath)
-        new_path = self.file_handler.build_path(self.file_handler.pathname(filepath), new_name)
+
+        target_path = self.config.destination if self.config.destination else filepath
+        new_path = self.file_handler.build_path(self.file_handler.pathname(target_path), new_name)
 
         self.hashes.append(file_hash)
 

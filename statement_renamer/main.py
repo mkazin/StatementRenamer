@@ -52,8 +52,16 @@ def main():
                         # required=True,
                         type=str)
 
+    parser.add_argument('destination',
+                        # dest='target',
+                        action='store',
+                        help='Output folder',
+                        required=False,
+                        default=None,
+                        type=str)
     try:
         # TODO: decouple the CLI arguments from the Task class. Possibly with a TaskBuilder?
+        #       this will also allow me to decouple TaskConfig from the FileHandler and not pass in a class here
         task = Task(parser, DiskFileHandler, logger)
         task.execute()
     except Exception as ex:
