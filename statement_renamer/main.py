@@ -1,8 +1,9 @@
 """ Command Line Interface for StatementRenamer """
 import argparse
 import logging
-# import os
 import sys
+
+import config
 from statement_renamer.tasks.task import Task
 from statement_renamer.tasks.disk_file_handler import DiskFileHandler
 
@@ -11,6 +12,7 @@ logger = logging.getLogger('StatementRenamer')
 
 
 def main():
+
     """ Provides the command Line Interface """
     handler = logging.FileHandler(LOG_FILE_NAME)
     logger.addHandler(handler)
@@ -52,7 +54,7 @@ def main():
                         # required=True,
                         type=str)
 
-    parser.add_argument('destination',
+    parser.add_argument('--destination',
                         # dest='target',
                         action='store',
                         help='Output folder',
@@ -60,9 +62,16 @@ def main():
                         default=None,
                         type=str)
     try:
-        # TODO: decouple the CLI arguments from the Task class. Possibly with a TaskBuilder?
-        #       this will also allow me to decouple TaskConfig from the FileHandler and not pass in a class here
-        task = Task(parser, DiskFileHandler, logger)
+        args = parser.parse_args()
+        config.LOCATION = args.location
+        config.DESTINATION = args.destination
+        config.QUIET = args.quiet
+        config.VERBOSE = args.verbose
+        config.SIMULATE = args.simulate
+        config.HASH_ONLY = args.hash_only
+        config.EXTRACT_ONLY = args.extract_only
+
+        task = Task(parser, DiskFileHandler)
         task.execute()
     except Exception as ex:
         logger.exception(ex)

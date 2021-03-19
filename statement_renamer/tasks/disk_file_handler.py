@@ -1,14 +1,13 @@
 """ Provides file-handling operations for files located on an attached drive """
 import os
 from pathlib import Path
+import statement_renamer.config
 # from .task import Task
 # from .action import ActionType
 from .file_handler import FileHandler
 
 class DiskFileHandler(FileHandler):
     """ Main class """
-
-    # TODO: decouple Task
 
     def walkdir(self, folder):
         """Walk through each files in a directory"""
@@ -34,25 +33,19 @@ class DiskFileHandler(FileHandler):
     def build_path(self, path, filename):
         return Path(path) / filename
 
-    def __init__(self, config, logger):
-        super().__init__(config, logger)
-
-        self.config = config
-        self.logger = logger
-
-    def _rename_handler_(self, task, action):
+    def _rename_handler_(self, action):
         """ Handles the Rename operation for the provided Action """
         if os.path.isfile(action.target):
             error_text = (
                 'Aborting action {} to avoid overwrite of target'.format(action))
-            if not task.config.quiet:
+            if not statement_renamer.config.QUIET:
                 print(error_text)
-            task.logger.error(error_text)
+            self.logger.error(error_text)
             return
         os.rename(action.source, action.target)
 
-    def _delete_handler_(self, task, action):
+    def _delete_handler_(self, action):
         os.remove(action.source)
 
-    def _ignore_handler_(self, task, action):
+    def _ignore_handler_(self, action):
         pass

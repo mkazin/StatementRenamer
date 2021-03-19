@@ -6,48 +6,19 @@ from statement_renamer.formatters.date_formatter import DateFormatter
 from statement_renamer.readers.md5_reader import Md5Reader
 from statement_renamer.readers.pdf_reader import PdfReader
 from statement_renamer.readers.reader_exception import ReaderException
+import config
 from .action import ActionType, Action
 
 
 class Task():
     """ Central task of StatementRenamer. Uses Config to define parameters of execution """
 
-    class Config():
-        """ Data object holding the parameters of the task to execute """
-        @staticmethod
-        def __get_val_or__(obj, field, default):
-            if obj:
-                return obj.get(field)
-            return default
-
-        @staticmethod
-        def from_parser(parser):
-            """ Instantiates a Config object based on values in ArgumentParser """
-            args = parser.parse_args()
-            return Task.Config(
-                location=args.location, destination=args.destination, quiet=args.quiet, verbose=args.verbose,
-                simulate=args.simulate, hash_only=args.hash_only, extract_only=args.extract_only)
-
-        def __init__(self, location, destination=None,
-                     quiet=False, verbose=False, simulate=False,
-                     hash_only=False, extract_only=False):
-            self.location = location
-            self.destination = destination,
-            self.quiet = quiet
-            self.verbose = verbose
-            self.simulate = simulate
-            self.hash_only = hash_only
-            self.extract_only = extract_only
-
-
-
-    def __init__(self, parser, file_handler_class, logger=None):
-        self.config = Task.Config.from_parser(parser)
+    def __init__(self, file_handler_class, logger=None):
         # TODO: inject these
         self.reader = PdfReader()
         self.date_formatter = DateFormatter()
         self.logger = logger
-        self.file_handler = file_handler_class(self.config, self.logger)
+        self.file_handler = file_handler_class()
 
         self.actions = []
         self.hashes = []
@@ -67,14 +38,14 @@ class Task():
     def execute(self):
         self.__reset_action_totals__()
 
-        if self.file_handler.is_file(self.config.location):
-            self.determine_action_for_file(self.config.location)
+        if self.file_handler.is_file(config.LOCATION):
+            self.determine_action_for_file(config.LOCATION)
 
-        elif self.file_handler.is_folder(self.config.location):
+        elif self.file_handler.is_folder(config.LOCATION):
             self.handle_folder()
 
         else:
-            self.logger.error("Error: file or folder not found: %s", self.config.location)
+            self.logger.error("Error: file or folder not found: %s", config.LOCATION)
 
         self.logger.debug('Done processing files')
 
@@ -84,20 +55,20 @@ class Task():
             ['{}: {}'.format(key.capitalize(), self.action_totals[key])
              for key in self.action_totals.keys()])
         self.logger.debug(summary)
-        if not self.config.quiet:
-            if self.config.simulate:
+        if not config.QUIET:
+            if config.SIMULATE:
                 summary = 'SIMULATED ' + summary
             print(summary)
 
     def handle_folder(self):
         """ Iterates over the files in the configured folder """
-        for curr_file in tqdm(self.file_handler.walkdir(self.config.location),
-                              disable=self.config.quiet or self.config.verbose,
+        for curr_file in tqdm(self.file_handler.walkdir(config.LOCATION),
+                              disable=config.QUIET or config.VERBOSE,
                               desc='Processing Files', unit=' files'):
             # dir_name = os.path.dirname(curr_file)
             curr_path = curr_file  # (dir_name + '/' + curr_file).replace('//', '/')
             self.logger.info('Processing: {}'.format(curr_path))
-            if self.config.verbose:
+            if config.VERBOSE:
                 print('Processing: {}'.format(curr_path))
 
             try:
@@ -124,7 +95,7 @@ class Task():
 
         # TODO: perform this every time? Or only when we find a duplicate target filename?
         file_hash = Md5Reader().parse(filepath)
-        if self.config.hash_only:
+        if config.HASH_ONLY:
             print('{} - {}'.format(file_hash, filepath))
             return
 
@@ -136,7 +107,7 @@ class Task():
             # TODO: can PdfReader accept/process the same streamed data as Md5Reader?
         contents = self.reader.parse(filepath)
 
-        if self.config.extract_only:
+        if config.EXTRACT_ONLY:
             print(contents)
             return
 
@@ -150,7 +121,7 @@ class Task():
         new_name = extractor.rename(data)
         old_name = self.file_handler.basename(filepath)
 
-        target_path = self.config.destination if self.config.destination else filepath
+        target_path = config.DESTINATION if config.DESTINATION else filepath
         new_path = self.file_handler.build_path(self.file_handler.pathname(target_path), new_name)
 
         self.hashes.append(file_hash)
@@ -182,7 +153,7 @@ class Task():
 
         self.actions.append(action)
 
-        if self.config.verbose:
+        if config.VERBOSE:
             print('Adding action: {}'.format(action))
 
     def act_on_file(self, action):
@@ -191,8 +162,8 @@ class Task():
         # Increment counter for this action's type
         self.action_totals[action.action_type.name] += 1
 
-        if self.config.simulate:
-            if not self.config.quiet:
+        if config.SIMULATE:
+            if not config.QUIET:
                 print('SIMULATION ' + str(action))
             return
 
