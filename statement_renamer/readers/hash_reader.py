@@ -1,9 +1,9 @@
-""" MD5 hash reader for files on disk """
+""" Hash reader for files on disk """
 import hashlib
 from .reader import Reader, ReaderException
 
 
-class Md5Reader(Reader):
+class HashReader(Reader):
     """ Primary class """
 
     CHUNK_SIZE = 8192
@@ -12,15 +12,15 @@ class Md5Reader(Reader):
         """ Reads the provided file from disk in chunks and returns an MD5 hash its content """
 
         try:
-            md5 = hashlib.md5()
+            hasher = hashlib.sha256()
 
             with open(fname, "rb") as fp:
 
-                chunk = fp.read(Md5Reader.CHUNK_SIZE)
+                chunk = fp.read(HashReader.CHUNK_SIZE)
                 while chunk:
-                    md5.update(chunk)
-                    chunk = fp.read(Md5Reader.CHUNK_SIZE)
+                    hasher.update(chunk)
+                    chunk = fp.read(HashReader.CHUNK_SIZE)
 
-            return md5.hexdigest()
+            return hasher.hexdigest()
         except Exception as ex:
             raise ReaderException(ex)
