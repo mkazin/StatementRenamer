@@ -8,6 +8,11 @@ class ExtractorException(Exception):
     def __init__(self, *args, **kwargs):
         Exception.__init__(self, *args, **kwargs)
 
+class NoMatchingExtractor(ExtractorException):
+    """ Exception denoting no matching extractor was found for a single file. """
+    def __init__(self, *args, **kwargs):
+        super.__init_subclass__()
+
 
 class DateExtractor(metaclass=abc.ABCMeta):
     """

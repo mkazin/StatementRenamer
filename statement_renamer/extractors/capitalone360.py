@@ -18,7 +18,8 @@ class CapitalOne360DateExtractor(DateExtractor):
 
     @staticmethod
     def match(text):
-        return 'My Info section.capitalone360.comInteractive' in text
+        return ('My Info section.capitalone360.comInteractive' in text or
+               'capitalone.com  1-888-464-0727  P.O. Box 60, St. Cloud, MN 56302' in text)
 
     def extract(self, text):
 

@@ -5,6 +5,7 @@ import statement_renamer.config
 # from .task import Task
 # from .action import ActionType
 from .file_handler import FileHandler
+import logging
 
 class DiskFileHandler(FileHandler):
     """ Main class """
@@ -16,6 +17,9 @@ class DiskFileHandler(FileHandler):
                 yield os.path.abspath(os.path.join(dirpath, filename))
 
     def is_file(self, location):
+        log = logging.getLogger('StatementRenamer')
+        # log = logging.getLogger(__name__)
+        log.debug('abspath: {%s}', os.path.abspath(location))
         return os.path.isfile(location)
 
     def is_folder(self, location):

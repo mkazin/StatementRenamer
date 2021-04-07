@@ -3,7 +3,7 @@ import argparse
 import logging
 import sys
 
-import config
+from statement_renamer import config
 from statement_renamer.tasks.task import Task
 from statement_renamer.tasks.disk_file_handler import DiskFileHandler
 
@@ -17,7 +17,7 @@ def main():
     handler = logging.FileHandler(LOG_FILE_NAME)
     logger.addHandler(handler)
     logger.setLevel("DEBUG")  # WARNING")
-    logger.warning('Starting rename with params: [%s]', ' '.join(sys.argv[1:]))
+    logger.warning('Starting rename with [%d] params: [%s]', len(sys.argv)-1, ' '.join(sys.argv[1:]))
 
     parser = argparse.ArgumentParser()
 
@@ -76,6 +76,8 @@ def main():
     except Exception as ex:
         logger.exception(ex)
         raise ex
+
+main()
 
 
 # def walkdir(folder):

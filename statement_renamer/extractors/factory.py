@@ -1,6 +1,6 @@
 """ Abstract Factory for DateExtractors """
-from .extractor import DateExtractor, ExtractorException
-
+from .extractor import DateExtractor, NoMatchingExtractor
+import logging
 
 class ExtractorFactory(object):
     """
@@ -28,8 +28,10 @@ class ExtractorFactory(object):
         # It's a neat little trick of Python, as is the __subclasses__ getter, which works thanks
         # to the code in extractors/__init__.py .
         # --mkazin
+        # log = logging.getLogger('StatementRenamer')
         for extractor in DateExtractor.__subclasses__():
+            # log.debug('Testing extractor: {%s} on {%s}', extractor, text)
             if extractor.match(text):
                 return extractor()
 
-        raise ExtractorException('No matching extractor found.')
+        raise NoMatchingExtractor('No matching extractor found.')

@@ -1,23 +1,23 @@
 """ Primary functionality and configuration of StatementRenamer """
+import logging
 from tqdm import tqdm
-from statement_renamer.extractors.extractor import ExtractorException
+from statement_renamer.extractors.extractor import ExtractorException, NoMatchingExtractor
 from statement_renamer.extractors.factory import ExtractorFactory
 from statement_renamer.formatters.date_formatter import DateFormatter
-from statement_renamer.readers.md5_reader import Md5Reader
+from statement_renamer.readers.hash_reader import HashReader
 from statement_renamer.readers.pdf_reader import PdfReader
 from statement_renamer.readers.reader_exception import ReaderException
-import config
+from statement_renamer import config
 from .action import ActionType, Action
 
 
 class Task():
     """ Central task of StatementRenamer. Uses Config to define parameters of execution """
 
-    def __init__(self, file_handler_class, logger=None):
-        # TODO: inject these
+    def __init__(self, parser, file_handler_class):
         self.reader = PdfReader()
         self.date_formatter = DateFormatter()
-        self.logger = logger
+        self.logger = logging.getLogger('StatementRenamer')
         self.file_handler = file_handler_class()
 
         self.actions = []
@@ -39,6 +39,7 @@ class Task():
         self.__reset_action_totals__()
 
         if self.file_handler.is_file(config.LOCATION):
+            self.logger.debug(f'Handling single file at {config.LOCATION}')
             self.determine_action_for_file(config.LOCATION)
 
         elif self.file_handler.is_folder(config.LOCATION):
@@ -67,7 +68,7 @@ class Task():
                               desc='Processing Files', unit=' files'):
             # dir_name = os.path.dirname(curr_file)
             curr_path = curr_file  # (dir_name + '/' + curr_file).replace('//', '/')
-            self.logger.info('Processing: {}'.format(curr_path))
+            self.logger.info('Processing: {%s}', curr_path)
             if config.VERBOSE:
                 print('Processing: {}'.format(curr_path))
 
@@ -78,6 +79,10 @@ class Task():
                     curr_path, reason='Failed to read file {}'.format(curr_path)))
                 self.logger.exception(ex)
                 continue
+            except NoMatchingExtractor as ex:
+                self.actions.append(Action.create_ignore_action(
+                    curr_path, reason=str(ex)))  # 'Failed to extract text from PDF'
+                self.logger.debug('No matching extractor for file {%s}', curr_path)
             except ExtractorException as ex:
                 self.actions.append(Action.create_ignore_action(
                     curr_path, reason=str(ex)))  # 'Failed to extract text from PDF'
@@ -94,7 +99,7 @@ class Task():
         """
 
         # TODO: perform this every time? Or only when we find a duplicate target filename?
-        file_hash = Md5Reader().parse(filepath)
+        file_hash = HashReader().parse(filepath)
         if config.HASH_ONLY:
             print('{} - {}'.format(file_hash, filepath))
             return
@@ -167,4 +172,4 @@ class Task():
                 print('SIMULATION ' + str(action))
             return
 
-        self.file_handler.handle(self, action)
+        self.file_handler.handle(action)
