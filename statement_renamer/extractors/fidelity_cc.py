@@ -15,9 +15,6 @@ class FidelityCreditCardDateExtractor(DateExtractor):
     PRE_DATE_TEXT = 'Open Date:'
     POST_DATE_TEXT = 'Account:'
     FILE_FORMAT = '{}-{:02} - Fidelity CC Statement.pdf'
-    # MULTI_MONTH_FILE_FORMAT = '{}-{:02}-{:02} - Fidelity CC Statement.pdf'
-    # QUARTERLY_FILE_FORMAT = '{}-Q{} - Fidelity CC Quarterly Statement.pdf'
-    # YEARLY_FILE_FORMAT = "{} - Fidelity CC Year-End Statement.pdf"
     DATE_FORMAT = '%m/%d/%Y'
     SPLIT_TEXT = 'Closing Date:'
 
