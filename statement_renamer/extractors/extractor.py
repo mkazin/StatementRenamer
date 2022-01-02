@@ -142,6 +142,12 @@ class ExtractedData():
     def get_source(self):
         return self.data['source_path']
 
+    def set_field(self, field_name, value):
+        self.data[field_name] = value
+
+    def get_field(self, field_name):
+        return self.data[field_name]
+
     def __repr__(self):
         return '(ExtractedData:: {} - {})'.format(
             self.get_start_date(),

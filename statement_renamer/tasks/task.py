@@ -11,10 +11,10 @@ from statement_renamer import config
 from .action import ActionType, Action
 
 
-class Task():
+class Task(object):
     """ Central task of StatementRenamer. Uses Config to define parameters of execution """
 
-    def __init__(self, parser, file_handler_class):
+    def __init__(self, file_handler_class):
         self.reader = PdfReader()
         self.date_formatter = DateFormatter()
         self.logger = logging.getLogger('StatementRenamer')
@@ -23,6 +23,8 @@ class Task():
         self.actions = []
         self.hashes = []
         self.action_totals = {}
+
+        self.hash_reader = HashReader()
 
 
     def __reset_action_totals__(self):
@@ -99,7 +101,7 @@ class Task():
         """
 
         # TODO: perform this every time? Or only when we find a duplicate target filename?
-        file_hash = HashReader().parse(filepath)
+        file_hash = self.hash_reader.parse(filepath)
         if config.HASH_ONLY:
             print('{} - {}'.format(file_hash, filepath))
             return

@@ -35,6 +35,12 @@ class Action():
             response += ' ({})'.format(self.reason)
         return response
 
+    def __eq__(self, other):
+        return self.reason == other.reason and \
+               self.source == other.source and \
+               self.target == other.target and \
+               self.action_type == other.action_type
+
     @staticmethod
     def create_delete_action(filepath, reason=None):
         """ Creates an Action for deleting a file """

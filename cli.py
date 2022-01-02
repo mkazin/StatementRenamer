@@ -71,7 +71,7 @@ def main():
         config.HASH_ONLY = args.hash_only
         config.EXTRACT_ONLY = args.extract_only
 
-        task = Task(parser, DiskFileHandler)
+        task = Task(DiskFileHandler)
         task.execute()
     except Exception as ex:
         logger.exception(ex)
