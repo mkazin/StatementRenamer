@@ -24,6 +24,8 @@ That said, I will *not* be accepting raw PDF documents.
 
 You can use the *extract-only* mode (see below) to extract text from a PDF document, and then (carefully) remove any sensitive data before submitting it to me via **((TBD secure manner))**. In other words, contact me and will figure out that last part.
 
+Now with gitstream!
+
 ## Usage
 
 ### Command Line Interface:
